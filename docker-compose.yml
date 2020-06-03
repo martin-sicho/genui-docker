@@ -39,13 +39,13 @@ services:
       - PUBLIC_URL=${GENUI_FRONTEND_APP_PATH}
       - GENUI_USER
       - GENUI_USER_GROUP
-    entrypoint: /code/entrypoint.sh
+    entrypoint: /genui/entrypoint.sh
     command: authbind --deep -- gunicorn --certfile=/etc/certs/${GENUI_BACKEND_HOST}.crt --keyfile=/etc/certs/${GENUI_BACKEND_HOST}.key genui.wsgi:application --bind 0.0.0.0:${GENUI_BACKEND_PORT}
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/code/src/genui/media/
+      - ${GENUI_DATA_MOUNT}/media:/genui/src/genui/files/media/
       - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
-      - static:/code/src/genui/static/
-      - frontend:/code/src/genui_gui/build/
+      - static:/genui/src/genui/files/static/
+      - frontend:/genui/src/genui-gui/build/
       - ./config/nginx/certs/:/etc/certs
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
@@ -75,7 +75,7 @@ services:
       - GENUI_CELERY_NAME
     command: wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/code/src/genui/media/
+      - ${GENUI_DATA_MOUNT}/media:/genui/src/genui/files/media/
       - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
@@ -87,7 +87,7 @@ services:
 #    build: .
 #    command: celery -A proj beat -l info
 #    volumes:
-#      - .:/code
+#      - .:/genui
 #    depends_on:
 #      - genui_db
 #      - redis
