@@ -74,14 +74,14 @@ Also note that in this setup Redis (6379) and PostgreSQL (5432) ports will be ex
 
 ### Setting up the Main Node
 
-Provided that you have already built or pulled the desired GenUI Docker image that you want to deploy (see *Quick Start*), you can run `docker-compose` to setup the *main node* like so:
+Provided that you have already built or pulled the desired GenUI Docker image (see *Quick Start*), you can run `docker-compose` to setup the *main node* like so:
 
 ```bash
 ./set_env.sh prod.env
 docker-compose -f docker-compose.yml -f docker-compose-node-main.yml up
 ```
 
-This will setup the web application, but no workers. Instead, we expose the required ports on the host so that workers on the network can connect to the running database and task queue containers.
+This will setup the web application, but no workers. Instead, the required ports are exposed on the host so that workers on the network can connect to the running database and task queue containers.
 
 ### Setting up a Worker Node
 
@@ -92,7 +92,7 @@ Setting up a *worker node* is not that different from the *main node*. All you n
 docker-compose -f docker-compose-worker.yml -f docker-compose-node-worker.yml up
 ```
 
-Note that it is not mandatory to use docker images to set up workers, especially since setting up [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to expose GPU devices to the container might not be worth it if you only have one or two GPU equipped nodes. Especially since [native GPU support has not landed in docker-compose yet](https://github.com/docker/compose/issues/6691). 
+Note that it is not mandatory to use docker images to set up workers, especially since setting up [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) to expose GPU devices to the container might not be worth it if you only have one or two GPU equipped nodes and since [native GPU support has not landed in docker-compose yet](https://github.com/docker/compose/issues/6691). 
 
 You can use the following script as a general guide to start the worker natively on the target system (make sure you do this as `GENUI_USER`):
 
@@ -115,7 +115,7 @@ conda create -n genui -f environment.yml
 conda activate genui
 pip install -r requirements.txt
 
-# proceed to the run directory and run your worker
+# proceed to the main directory and run your worker
 cd src
 celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
 ```
