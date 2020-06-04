@@ -1,6 +1,6 @@
 # About
 
-The code in this repository is used to build and deploy the GenUI application Docker image. At the moment the application is contained in a single docker image which can be either deployed on a single machine (see *Single Machine Build and Deployment*) or in multiple copies spanning over an infrastructure of computers (see *Distributed Build and Deployment*).
+The code in this repository is used to build and deploy the GenUI application Docker image. This image can be deployed as either the web application or a worker using one copy on one host (see *Single Machine Build and Deployment*) or in multiple copies spanning over an infrastructure of computers (see *Distributed Build and Deployment*).
 
 # Installation
 
