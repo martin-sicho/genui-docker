@@ -1,10 +1,9 @@
 version: '3.7'
 
 services:
-  celery-worker:
-    image: sichom/genui:${DOCKER_IMAGE_TAG} # FIXME: the actual worker should have its own image with gpu related libs and stuff
+  celery:
+    image: sichom/genui:${DOCKER_IMAGE_TAG}
     user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
-    network_mode: "host"
     environment:
       - DJANGO_SETTINGS_MODULE
       - GENUI_BACKEND_PROTOCOL
@@ -19,18 +18,23 @@ services:
       - REDIS_PASSWORD
       - GENUI_USER
       - GENUI_USER_GROUP
-      - GENUI_CELERY_NAME=base
-    command: wait-for-it ${GENUI_BACKEND_HOST}:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
+      - GENUI_CELERY_NAME
+      - GENUI_CELERY_NAME
+      - GENUI_CELERY_QUEUES
+      - GENUI_CELERY_CONCURRENCY
+    command: wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/code/genui/files/media/
+      - ${GENUI_DATA_MOUNT}/media:/genui/src/genui/files/media/
       - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
-
-# DOCKER_NET_MTU=1442 must be set so that the app works on the openstack cloud
-networks:
-  default:
-    driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
+  #  # use this to define a periodic task
+  #  celery-beat:
+  #    build: .
+  #    command: celery -A proj beat -l info
+  #    volumes:
+  #      - .:/genui
+  #    depends_on:
+  #      - genui_db
+  #      - redis
