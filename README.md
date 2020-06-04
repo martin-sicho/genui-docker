@@ -16,7 +16,7 @@ This section describes how you build the GenUI application image and deploy it o
 
 ### Production Image
 
-Edit the `prod.env` file accordingly or set the required environment variables. This file is intentionally left incomplete so you can easily identify and fill in the required information. You can see the list of available options and their meaning below (see `Environment Variables Reference`). When done link this file as the current environment definition. You can use the `set_env.sh` script for that:
+Edit the `prod.env` file accordingly or set the required environment variables. This file is intentionally left incomplete so you can easily identify and fill in the required information. You can see the list of available options and their meaning below (see *Environment Variables Reference*). When done link this file as the current environment definition. You can use the `set_env.sh` script for that:
 
 ```bash
 ./set_env.sh prod.env
