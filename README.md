@@ -1,18 +1,47 @@
 # About
 
-This is a repository to build and deploy the GenUI application Docker image. At the moment the application is contained in a single docker image which can be either deployed on a single machine (see *Single Machine Build and Deployment*) or span over an infrastructure of computers (see *Distributed Setup*).
+The code in this repository is used to build and deploy the GenUI application Docker image. At the moment the application is contained in a single docker image which can be either deployed on a single machine (see *Single Machine Build and Deployment*) or in multiple copies spanning over an infrastructure of computers (see *Distributed Build and Deployment*).
+
+# Installation
+
+This installation guide is meant to be a brief overview of two common deployment scenarios for the GenUI application. You will probably have to modify the files in this repository to suit your needs, but it should be enough to give you a general idea of where to start.
 
 ## Prerequisites
 
-TODO
+1. You will need to install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/). However, as you will see below, using docker is not required on all instances.
+3. So far this app and its components is intended to be deployed in Linux environments.
 
 ## Quick Start
 
-TODO
+If you just want to quickly test the latest version of the app on your local machine, you can pull the latest docker image from Docker Hub:
+
+```bash
+docker pull sichom/genui:latest # or sichom/genui:dev for the latest development snapshot
+```
+
+After that you should be able to setup all services locally:
+
+```bash
+# set all environment variables to reasonable defaults to host locally
+./set_env.sh quickstart.env
+
+# map the current host user as the genui user inside the container
+export GENUI_USER="$(id -un)"
+export GENUI_USER_GROUP="$(id -gn)"
+export GENUI_USER_ID="$(id -u)"
+export GENUI_USER_GROUP_ID="$(id -g)"
+
+# deploy the services
+docker-compose -f docker-compose.yml -f docker-compose-worker.yml up
+```
+
+You should now be able to access the GUI at https://localhost/. Note that by default the docker container does not have access to specialized hardware such as GPUs on the system. If you want to take advantage of this hardware, you will either have to expose it to the docker container with [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) or avoid using a docker container altogether (see *Distributed Build and Deployment*).
+
+The `quickstart.env` contains some variables that need to be specified for deployment. If you want to expose the service to the outside world or otherwise customize the deployment, read the *Environment Variables Reference*.
 
 ## Single Machine Build and Deployment
 
-This section describes how you build the GenUI application image and deploy it on a single machine along with a worker consuming task queues. If you are interested in a distributed setup (with workers residing on different machines), see the *Distributed Setup* section below. 
+This section describes how to build the GenUI application image from source and deploy it on a single machine along with a worker consuming task queues. If you are interested in a distributed setup (with workers residing on different machines), see the *Distributed Build and Deployment* section below. 
 
 ### Production Image
 
@@ -120,7 +149,7 @@ cd src
 celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
 ```
 
-If you want to run this sensibly in production, you will probably want to consider [daemonization](https://docs.celeryproject.org/en/stable/userguide/daemonizing.html) of this service as well.
+If you want to run this in production, you might want to consider [daemonization](https://docs.celeryproject.org/en/stable/userguide/daemonizing.html) of this service.
 
 ## Environment Variables Reference
 
