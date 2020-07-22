@@ -28,6 +28,8 @@ services:
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
+    depends_on:
+      - genui
   #  # use this to define a periodic task
   #  celery-beat:
   #    build: .
