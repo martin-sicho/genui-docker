@@ -69,18 +69,18 @@ Finally, run `docker-compose` to build and deploy the application:
 docker-compose -f docker-compose.yml -f docker-compose-worker.yml up
 ```
 
-This will setup the GenUI web application on the current machine as a host and will expose ports 80 and 443 to enable access via web browser with https. The address is defined using the information in the `prod.env` file (`${GENUI_BACKEND_PROTOCOL}://${GENUI_BACKEND_HOST}:${GENUI_BACKEND_PORT}`).
+This will setup the GenUI web application on the current machine as a host and will expose ports 80 and 443 to enable access via web browser with https. The address is defined using information in the `prod.env` file (`${GENUI_BACKEND_PROTOCOL}://${GENUI_BACKEND_HOST}:${GENUI_BACKEND_PORT}`).
 
-Along with the web application we also deploy a worker to consume the user submitted tasks (make sure to include both `celery` and `gpu` queues in the `GENUI_CELERY_QUEUES` variable). The worker is defined in the `docker-compose-worker.yml` file and also uses the `prod.env` file for its setup.
+In this case, we also deploy a worker along with the web application. The worker consumes tasks submitted to celery queues so make sure to include both `celery` and `gpu` queues in the `GENUI_CELERY_QUEUES` variable for the deployed worker. The worker service is defined in the `docker-compose-worker.yml` file. You can edit this file if you want to deploy more workers or need to change some parameters.
 
-Do not forget the `--build` flag if you want to rebuild existing images and `--detach` to run in the background see `docker-compose up -h` for details.
+The `up` command attaches the process to the current shell. If you want the services running in the background, do not forget the `--build` flag if you want to rebuild existing images and `--detach` to run in the background see `docker-compose up -h` for details.
 
 ### Development Image
 
-If you want to build a development image with debug options (to use in staging environment, for example), you can edit and link the `debug.env` file:
+If you want to build a development image with debug options (to use in staging environment, for example), you can edit and link the `stage.env` file:
 
 ```bash
-./set_env.sh debug.env
+./set_env.sh stage.env
 ```
 
 Then checkout the required development branches of the backend and frontend:
