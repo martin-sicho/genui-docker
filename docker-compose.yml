@@ -39,9 +39,9 @@ services:
     entrypoint: /genui/entrypoint.sh
     command: authbind --deep -- gunicorn --certfile=/etc/certs/${GENUI_BACKEND_HOST}.crt --keyfile=/etc/certs/${GENUI_BACKEND_HOST}.key genui.wsgi:application --bind 0.0.0.0:${GENUI_BACKEND_PORT}
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/genui/src/genui/files/media/
+      - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
       - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
-      - static:/genui/src/genui/files/static/
+      - static:/genui/data/files/static/
       - frontend:/genui/src/genui-gui/build/
       - ./config/nginx/certs/:/etc/certs
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro

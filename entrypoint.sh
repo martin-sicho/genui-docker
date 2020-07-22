@@ -2,8 +2,8 @@
 
 set -e
 
-GENUI_FRONTEND_ROOT="/genui/src/genui-gui/"
-GENUI_MEDIA_ROOT="/genui/src/genui/files/media/"
+GENUI_FRONTEND_ROOT=${GENUI_FRONTEND_DIR}
+GENUI_MEDIA_ROOT="${GENUI_DATA_DIR}/files/media/"
 
 # compile the frontend app
 npm run-script build --prefix ${GENUI_FRONTEND_ROOT}
@@ -30,11 +30,11 @@ touch /etc/authbind/byport/443
 chgrp ${GENUI_USER_GROUP} /etc/authbind/byport/443
 chmod g+rwx /etc/authbind/byport/443
 
-# make sure the user has a home directory in the container and has the required permissions
+# make sure the genui user has a home directory in the container and has the required permissions
 mkdir -p /home/${GENUI_USER}
 chgrp -R ${GENUI_USER_GROUP} /home/${GENUI_USER}
 chown -R ${GENUI_USER} /home/${GENUI_USER}
 chmod 770 /home/${GENUI_USER}
 
-# execute the command as the declared user
+# execute the container command as the genui user
 exec runuser -u  ${GENUI_USER} -- "$@"
