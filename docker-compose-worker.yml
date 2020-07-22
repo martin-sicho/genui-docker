@@ -23,7 +23,7 @@ services:
       - GENUI_CELERY_CONCURRENCY
     command: wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/genui/src/genui/files/media/
+      - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
       - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
