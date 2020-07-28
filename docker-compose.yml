@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   db:
-    image: informaticsmatters/rdkit-cartridge-debian
+    image: informaticsmatters/rdkit-cartridge-debian:Release_2019_09_2
     environment:
       - POSTGRES_DB
       - POSTGRES_USER
