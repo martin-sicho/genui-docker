@@ -1,0 +1,6 @@
+[submodule "src/genui"]
+	path = src/genui
+	url = git@github.com:martin-sicho/genui.git
+[submodule "src/genui-gui"]
+	path = src/genui-gui
+	url = git@github.com:martin-sicho/genui-gui.git
