@@ -13,11 +13,14 @@ services:
     image: "redis:alpine"
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD}
-  genui:
-    image: sichom/genui:${DOCKER_IMAGE_TAG}
+  genui-main:
+    image: sichom/genui-main:${DOCKER_IMAGE_TAG}
+    container_name: genui
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-main
+      args:
+        DOCKER_IMAGE_TAG: ${DOCKER_IMAGE_TAG}
     environment:
       - GENUI_BACKEND_PROTOCOL
       - GENUI_BACKEND_HOST
@@ -36,7 +39,7 @@ services:
       - PUBLIC_URL=${GENUI_FRONTEND_APP_PATH}
       - GENUI_USER
       - GENUI_USER_GROUP
-    entrypoint: /genui/entrypoint.sh
+    entrypoint: /genui/entrypoint-main.sh
     command: authbind --deep -- gunicorn --timeout 180 --limit-request-line 0 --graceful-timeout 120 --certfile=/etc/certs/${GENUI_BACKEND_HOST}.crt --keyfile=/etc/certs/${GENUI_BACKEND_HOST}.key genui.wsgi:application --bind 0.0.0.0:${GENUI_BACKEND_PORT}
     volumes:
       - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
@@ -69,7 +72,7 @@ services:
       - frontend:/usr/share/nginx/html/app:ro
       - ./config/nginx/:/etc/nginx/conf.d
     depends_on:
-      - genui
+      - genui-main
 
 volumes:
   data:

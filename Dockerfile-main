@@ -1,0 +1,25 @@
+ARG DOCKER_IMAGE_TAG
+FROM sichom/genui-base:${DOCKER_IMAGE_TAG}
+
+ARG ROOT_DIR=/genui
+ARG FRONTEND_DIR=./src/genui-gui
+
+# setup environment variables
+ENV GENUI_FRONTEND_DIR=${ROOT_DIR}/${FRONTEND_DIR}
+
+# authbind: to allow the app process to bind port 443 if run as nonroot
+RUN apt-get update && apt-get install -y --no-install-recommends authbind
+RUN conda install -c conda-forge nodejs=12.4.0
+
+# get the frontend app dependencies
+COPY ${FRONTEND_DIR}/package.json ${GENUI_FRONTEND_DIR}/package.json
+RUN npm --prefix ${GENUI_FRONTEND_DIR} install ${GENUI_FRONTEND_DIR}
+
+# copy over the sources
+COPY ${FRONTEND_DIR} ${GENUI_FRONTEND_DIR}
+
+# copy the entrypoint script
+COPY ./entrypoint-main.sh ${ROOT_DIR}/entrypoint-main.sh
+
+# set working directory to where the manage.py lives
+WORKDIR ${GENUI_BACKEND_DIR}/src/

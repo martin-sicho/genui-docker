@@ -1,0 +1,8 @@
+ARG DOCKER_IMAGE_TAG
+FROM sichom/genui-base:${DOCKER_IMAGE_TAG}
+
+# setup dependencies
+# wait-for-it: for the worker to wait until the backend is online
+RUN apt-get update && apt-get install -y --no-install-recommends wait-for-it
+
+WORKDIR ${GENUI_BACKEND_DIR}/src/

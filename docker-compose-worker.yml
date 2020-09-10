@@ -2,9 +2,15 @@ version: '3.7'
 
 services:
   celery:
-    image: sichom/genui:${DOCKER_IMAGE_TAG}
+    image: sichom/genui-worker:${DOCKER_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile-worker
+      args:
+        DOCKER_IMAGE_TAG: ${DOCKER_IMAGE_TAG}
     user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
       - DJANGO_SETTINGS_MODULE
       - GENUI_BACKEND_PROTOCOL
       - GENUI_BACKEND_HOST
@@ -29,7 +35,7 @@ services:
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
     depends_on:
-      - genui
+      - genui-main
   #  # use this to define a periodic task
   #  celery-beat:
   #    build: .

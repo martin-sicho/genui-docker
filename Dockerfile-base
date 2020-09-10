@@ -1,0 +1,24 @@
+FROM continuumio/miniconda:latest
+
+# arguments
+ARG ROOT_DIR=/genui
+ARG BACKEND_DIR=./src/genui
+ARG DATA_DIR=./data
+
+# environment variables
+ENV GENUI_ROOT_DIR=${ROOT_DIR}
+ENV GENUI_BACKEND_DIR=${ROOT_DIR}/${BACKEND_DIR}
+ENV GENUI_DATA_DIR=${ROOT_DIR}/${DATA_DIR}
+ENV PYTHONUNBUFFERED 1
+ENV DOCKER_CONTAINER 1
+
+# initialize the conda environment
+COPY ${BACKEND_DIR}/environment.yml ${GENUI_BACKEND_DIR}/environment.yml
+RUN conda install python=3.7 && conda env update -n base --file ${GENUI_BACKEND_DIR}/environment.yml
+
+# install the pip packages
+COPY ${BACKEND_DIR}/requirements.txt ${GENUI_BACKEND_DIR}/requirements.txt
+RUN pip install -r ${GENUI_BACKEND_DIR}/requirements.txt
+
+# copy over sources
+COPY ${BACKEND_DIR} ${GENUI_BACKEND_DIR}
