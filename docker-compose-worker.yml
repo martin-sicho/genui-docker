@@ -2,13 +2,13 @@ version: '3.7'
 
 services:
   celery:
-    image: ${DOCKER_IMAGE_REPO}/genui-worker:${DOCKER_IMAGE_TAG}
+    image: ${GENUI_DOCKER_IMAGE_REPO}/genui-worker:${GENUI_DOCKER_IMAGE_TAG}
     build:
       context: .
       dockerfile: Dockerfile-worker
       args:
-        DOCKER_IMAGE_TAG: ${DOCKER_IMAGE_TAG}
-        DOCKER_IMAGE_REPO: ${DOCKER_IMAGE_REPO}
+        GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG}
+        GENUI_DOCKER_IMAGE_REPO: ${GENUI_DOCKER_IMAGE_REPO}
     user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
