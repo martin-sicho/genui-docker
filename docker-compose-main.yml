@@ -21,6 +21,7 @@ services:
       dockerfile: Dockerfile-main
       args:
         DOCKER_IMAGE_TAG: ${DOCKER_IMAGE_TAG}
+        DOCKER_IMAGE_REPO: ${DOCKER_IMAGE_REPO}
     environment:
       - GENUI_BACKEND_PROTOCOL
       - GENUI_BACKEND_HOST

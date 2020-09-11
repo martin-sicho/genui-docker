@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile-worker
       args:
         DOCKER_IMAGE_TAG: ${DOCKER_IMAGE_TAG}
+        DOCKER_IMAGE_REPO: ${DOCKER_IMAGE_REPO}
     user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
