@@ -14,7 +14,7 @@ services:
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD}
   genui-main:
-    image: sichom/genui-main:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_REPO}/genui-main:${DOCKER_IMAGE_TAG}
     container_name: genui
     build:
       context: .

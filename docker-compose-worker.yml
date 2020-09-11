@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   celery:
-    image: sichom/genui-worker:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_REPO}/genui-worker:${DOCKER_IMAGE_TAG}
     build:
       context: .
       dockerfile: Dockerfile-worker
