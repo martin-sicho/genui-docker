@@ -38,5 +38,14 @@ chgrp -R ${GENUI_USER_GROUP} /home/${GENUI_USER}
 chown -R ${GENUI_USER} /home/${GENUI_USER}
 chmod 770 /home/${GENUI_USER}
 
+# run the server (use certificate files in the default location if using https)
+export CERTFILES=$(if [[ "${GENUI_BACKEND_PROTOCOL}" == "https" ]]; then echo "--certfile=/etc/certs/${GENUI_BACKEND_HOST}.crt --keyfile=/etc/certs/${GENUI_BACKEND_HOST}.key" ; fi)
+if [[ "${GENUI_BACKEND_PROTOCOL}" == "https" ]]; then echo "Found SSL certfiles: ${CERTFILES}" ; fi
+echo "Binding backend application to port ${GENUI_BACKEND_PORT} using ${GENUI_BACKEND_PROTOCOL}..."
+
+# comment this out, if you want to pass another command
+exec runuser -u  ${GENUI_USER} -- authbind --deep -- gunicorn --timeout 180 --limit-request-line 0 --graceful-timeout 120 ${CERTFILES} genui.wsgi:application --bind 0.0.0.0:${GENUI_BACKEND_PORT}
+
 # execute the container command as the genui user
-exec runuser -u  ${GENUI_USER} -- "$@"
+# uncomment if you want to run the server using the command directive in the docker-compose
+#exec runuser -u  ${GENUI_USER} -- "$@"
