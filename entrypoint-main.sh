@@ -6,7 +6,9 @@ GENUI_FRONTEND_ROOT=${GENUI_FRONTEND_DIR}
 GENUI_MEDIA_ROOT="${GENUI_DATA_DIR}/files/media/"
 
 # compile the frontend app
-npm run-script build --prefix ${GENUI_FRONTEND_ROOT}
+if [[ "${GENUI_BUILD_FRONTEND}" -eq 1 ]]
+  then npm run-script build --prefix ${GENUI_FRONTEND_ROOT}
+fi
 
 # migrate the database and set everything up
 python manage.py migrate --noinput
