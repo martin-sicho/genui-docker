@@ -4,6 +4,7 @@
 /config/nginx/certs
 /config/nginx/nginx.conf
 /config/.ssh/
+/config/nvidia/*.run
 
 # IntelliJ project files
 .idea

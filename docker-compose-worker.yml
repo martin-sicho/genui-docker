@@ -11,7 +11,6 @@ services:
         GENUI_DOCKER_IMAGE_REPO: ${GENUI_DOCKER_IMAGE_REPO}
     user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
       - DJANGO_SETTINGS_MODULE
       - GENUI_BACKEND_PROTOCOL
       - GENUI_BACKEND_HOST
@@ -35,8 +34,6 @@ services:
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
-    depends_on:
-      - genui-main
   #  # use this to define a periodic task
   #  celery-beat:
   #    build: .

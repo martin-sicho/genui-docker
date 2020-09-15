@@ -1,0 +1,16 @@
+ARG GENUI_DOCKER_IMAGE_TAG=latest
+ARG GENUI_DOCKER_IMAGE_REPO=sichom
+FROM ${GENUI_DOCKER_IMAGE_REPO}/genui-worker:${GENUI_DOCKER_IMAGE_TAG}
+
+# install the cuda toolkit and its dependencies
+ARG NVIDIA_CUDA_RUNFILE=./cuda_install.run
+RUN apt-get install -y --no-install-recommends gcc
+COPY ./${NVIDIA_CUDA_RUNFILE} ./cuda_install.run
+RUN sh ./cuda_install.run --silent --toolkit && rm cuda_install.run
+
+# set the environment variables
+ENV PATH /usr/local/cuda/bin/:$PATH
+ENV LD_LIBRARY_PATH /usr/local/cuda/lib:/usr/local/cuda/lib64
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+LABEL com.nvidia.volumes.needed="nvidia_driver"

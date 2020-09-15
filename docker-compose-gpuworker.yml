@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+    celery-gpu:
+        image: ${GENUI_DOCKER_IMAGE_REPO}/genui-gpuworker:${GENUI_DOCKER_IMAGE_TAG}
+        build:
+          args:
+            GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG}
+            GENUI_DOCKER_IMAGE_REPO: ${GENUI_DOCKER_IMAGE_REPO}
+            NVIDIA_CUDA_RUNFILE: ${NVIDIA_CUDA_RUNFILE}
+          context: .
+          dockerfile: Dockerfile-gpuworker
+        user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
+        environment:
+          - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all}
+          - DJANGO_SETTINGS_MODULE
+          - GENUI_BACKEND_PROTOCOL
+          - GENUI_BACKEND_HOST
+          - GENUI_BACKEND_PORT
+          - GENUI_BACKEND_SECRET
+          - POSTGRES_DB
+          - POSTGRES_USER
+          - POSTGRES_PASSWORD
+          - POSTGRES_HOST
+          - REDIS_HOST
+          - REDIS_PASSWORD
+          - GENUI_USER
+          - GENUI_USER_GROUP
+          - GENUI_CELERY_NAME
+          - GENUI_CELERY_QUEUES
+          - GENUI_CELERY_CONCURRENCY
+        command:  wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
+        volumes:
+          - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
+          - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
+          - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
+          - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
+          - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
