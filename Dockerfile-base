@@ -13,7 +13,7 @@ ENV PYTHONUNBUFFERED 1
 ENV DOCKER_CONTAINER 1
 
 # run updates
-RUN apt-get update && apt-get upgrade -y --no-install-recommends
+#RUN apt-get update && apt-get upgrade -y --no-install-recommends
 
 # initialize the backend conda environment
 COPY ${BACKEND_DIR}/environment.yml ${GENUI_BACKEND_DIR}/environment.yml
