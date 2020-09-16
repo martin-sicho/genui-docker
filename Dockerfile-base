@@ -12,11 +12,14 @@ ENV GENUI_DATA_DIR=${ROOT_DIR}/${DATA_DIR}
 ENV PYTHONUNBUFFERED 1
 ENV DOCKER_CONTAINER 1
 
-# initialize the conda environment
+# run updates
+RUN apt-get update && apt-get upgrade -y --no-install-recommends
+
+# initialize the backend conda environment
 COPY ${BACKEND_DIR}/environment.yml ${GENUI_BACKEND_DIR}/environment.yml
 RUN conda install python=3.7 && conda env update -n base --file ${GENUI_BACKEND_DIR}/environment.yml
 
-# install the pip packages
+# install the backend pip packages
 COPY ${BACKEND_DIR}/requirements.txt ${GENUI_BACKEND_DIR}/requirements.txt
 RUN pip install -r ${GENUI_BACKEND_DIR}/requirements.txt
 

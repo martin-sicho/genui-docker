@@ -4,6 +4,6 @@ FROM ${GENUI_DOCKER_IMAGE_REPO}/genui-base:${GENUI_DOCKER_IMAGE_TAG}
 
 # setup dependencies
 # wait-for-it: for the worker to wait until the backend is online
-RUN apt-get update && apt-get install -y --no-install-recommends wait-for-it
+RUN apt-get install -y --no-install-recommends wait-for-it
 
 WORKDIR ${GENUI_BACKEND_DIR}/src/

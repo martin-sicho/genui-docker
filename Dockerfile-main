@@ -9,7 +9,7 @@ ARG FRONTEND_DIR=./src/genui-gui
 ENV GENUI_FRONTEND_DIR=${ROOT_DIR}/${FRONTEND_DIR}
 
 # authbind: to allow the app process to bind port 443 if run as nonroot
-RUN apt-get update && apt-get install -y --no-install-recommends authbind
+RUN apt-get install -y --no-install-recommends authbind
 RUN conda install -c conda-forge nodejs=12.4.0
 
 # get the frontend app dependencies
