@@ -18,14 +18,14 @@ python manage.py collectstatic --no-input
 # ensure that only the genui user group has access to media files
 mkdir -p ${GENUI_MEDIA_ROOT}
 chgrp -R ${GENUI_USER_GROUP} ${GENUI_MEDIA_ROOT}
-chmod g+rwxs,a+xs ${GENUI_MEDIA_ROOT} # FIXME: here we allow all users to list directories and read the media files by default -> this could be a possible security concern for some sensitive files
+chmod g+rwxs,a+xs ${GENUI_MEDIA_ROOT} # TODO: all media directories and created files can be listed and read by default -> the application itself needs to take care of revoking the rights to files (this should be noted in the documentation)
 umask 002
 
-# disable listing of models and compounds media files
+# we disable listing of models and compounds media directories by default
 mkdir -p "${GENUI_MEDIA_ROOT}models"
 mkdir -p "${GENUI_MEDIA_ROOT}compounds"
-chmod o-r "${GENUI_MEDIA_ROOT}models"
-chmod o-r "${GENUI_MEDIA_ROOT}compounds"
+find "${GENUI_MEDIA_ROOT}models" -type d -exec chmod o-r {} +
+find "${GENUI_MEDIA_ROOT}compounds" -type d -exec chmod o-r {} +
 
 # use authbind to allow the genui user group to bind the 443 port
 touch /etc/authbind/byport/443
