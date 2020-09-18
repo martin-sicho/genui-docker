@@ -13,7 +13,7 @@ RUN sh ./cuda_install.run --silent --toolkit --toolkitpath=/opt/cuda/ && rm cuda
 # second stage -- move installation to the final image
 ARG GENUI_DOCKER_IMAGE_TAG=latest
 ARG GENUI_DOCKER_IMAGE_REPO=sichom
-FROM ${GENUI_DOCKER_IMAGE_REPO}/genui-worker:${GENUI_DOCKER_IMAGE_TAG}
+FROM ${GENUI_DOCKER_IMAGE_REPO}/genui-worker:${GENUI_DOCKER_IMAGE_TAG} AS final
 
 # COPY stuff from previous stage
 COPY --from=installer /opt/cuda /opt/cuda
