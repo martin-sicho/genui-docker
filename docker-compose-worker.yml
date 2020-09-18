@@ -34,6 +34,8 @@ services:
       - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
+    networks:
+      - genui_back
   #  # use this to define a periodic task
   #  celery-beat:
   #    build: .
@@ -43,3 +45,9 @@ services:
   #    depends_on:
   #      - genui_db
   #      - redis
+networks:
+  genui_back:
+    name: genui_back
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
