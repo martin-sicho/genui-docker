@@ -7,7 +7,7 @@ GENUI_MEDIA_ROOT="${GENUI_DATA_DIR}/files/media/"
 
 # compile the frontend app
 if [[ "${GENUI_BUILD_FRONTEND}" -eq 1 ]]
-  then npm run-script build --prefix ${GENUI_FRONTEND_ROOT}
+  then echo "Building GenUI frontend app..." && npm run-script build --prefix ${GENUI_FRONTEND_ROOT}
 fi
 
 # migrate the database and set everything up
