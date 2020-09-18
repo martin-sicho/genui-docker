@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
     celery-gpu:
+        container_name: celery-gpu-${GENUI_CELERY_NAME}-gpu_${NVIDIA_VISIBLE_DEVICES}
         image: ${GENUI_DOCKER_IMAGE_REPO}/genui-gpuworker:${GENUI_DOCKER_IMAGE_TAG}
         build:
           args:
