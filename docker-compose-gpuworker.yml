@@ -29,7 +29,7 @@ services:
           - GENUI_CELERY_NAME
           - GENUI_CELERY_QUEUES
           - GENUI_CELERY_CONCURRENCY
-        command:  wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
+        command:  wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -O fair --prefetch-multiplier 1 -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
         volumes:
           - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
           - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
