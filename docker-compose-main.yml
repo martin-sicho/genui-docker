@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   db:
+    restart: "always"
     image: informaticsmatters/rdkit-cartridge-debian:${POSTGRES_RDKIT_RELEASE:-Release_2019_09_2}
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-genui}
@@ -12,12 +13,13 @@ services:
 #    networks:
 #      - genui_back
   redis:
+    restart: "always"
     image: "redis:alpine"
-    restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD}
 #    networks:
 #      - genui_back
   genui-main:
+    restart: "always"
     image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-main:${GENUI_DOCKER_IMAGE_TAG:-latest}
     container_name: genui
     build:
@@ -64,6 +66,7 @@ services:
 #      - genui_front
 #      - genui_back
   nginx:
+    restart: "always"
     image: nginx:latest
     container_name: genui-nginx
     environment:
@@ -93,7 +96,7 @@ networks:
   default:
     driver: bridge
     driver_opts:
-      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
+      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
 
 #networks:
 #  genui_front:

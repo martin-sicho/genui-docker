@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   celery:
+    restart: "always"
     image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-worker:${GENUI_DOCKER_IMAGE_TAG:-latest}
     container_name: genui-${GENUI_CELERY_NAME:-celery}
     build:
