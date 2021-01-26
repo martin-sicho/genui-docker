@@ -4,7 +4,7 @@ The files in this repository are used to build and deploy the GenUI platform usi
  
  1. *genui-base* -- A base image that contains the Python backend and all its dependencies. It is used to derive all the other images below. On its own this image can be used to deploy just the backend application without the frontend GUI. There is currently no Docker Compose file for this setup, but it could be achieved by simplification of [`docker-compose-main.yml`](./docker-compose-main.yml).
  2. *genui-main* -- This image is derived from *genui-base* and adds the GenUI frontend GUI. Therefore, this image contains the complete GenUI web application. It can be deployed as a service through the [`docker-compose-main.yml`](./docker-compose-main.yml) file, which also handles deployment of the PostgeSQL database and Redis message queue.
- 3. *genui-worker* -- An image intended to be deployed as a worker consuming Celery tasks submitted to the Redis message queue. At least one worker node consuming tasks from all queues must be deployed in order for the application to function. Worker nodes can be deployed on the same host as the main application (see *Single Machine Build and Deployment*) or they can be setup in multiple copies spanning over an infrastructure of computers (see *Distributed Build and Deployment*). The [`docker-compose-worker.yml`](./docker-compose-worker.yml) and [`docker-compose-remote-worker.yml`](./docker-compose-remote-worker.yml) files are used for these deployment scenarios.
+ 3. *genui-worker* -- An image intended to be deployed as a worker consuming Celery tasks submitted to the Redis message queue. At least one worker node consuming tasks from all queues must be deployed in order for the application to function. Worker nodes can be deployed on the same host as the main application (see *Single Machine Deployment*) or they can be setup in multiple copies spanning over an infrastructure of computers (see *Distributed Deployment*). The [`docker-compose-worker.yml`](./docker-compose-worker.yml) and [`docker-compose-remote-worker.yml`](./docker-compose-remote-worker.yml) files are used for these deployment scenarios.
  4. *genui-gpuworker* --  An extended *genui-worker* image with access to one or more NVIDIA GPUs on the host system.
  
 # Setting up Your Host
@@ -151,9 +151,9 @@ to Docker Compose:
 ```bash
 # ${REPO_ROOT}/.env
 GENUI_USER=your_user
-GENUI_USER_ID=1000
-GENUI_USER_GROUP=your_user
-GENUI_USER_GROUP_ID=1000
+GENUI_USER_ID=your_user_id
+GENUI_USER_GROUP=your_user_group
+GENUI_USER_GROUP_ID=your_user_group_id
 GENUI_PROTOCOL=https
 GENUI_HOST=your_host
 GENUI_PORT=443
