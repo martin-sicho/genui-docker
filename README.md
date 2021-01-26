@@ -265,7 +265,7 @@ docker-compose -f docker-compose-gpuworker.yml -f docker-compose-node-gpuworker.
 
 In order to customize the GenUI images for various deployment scenarios, a collection of environment variables is available:
 
-- **DOCKER_NET_MTU** - Sets the [MTU](https://en.wikipedia.org/wiki/Maximum_transmission_unit) (Maximum Transmission Unit) for the docker network. On some hosts this value can be different than the docker default of 1500 so this option enables the user to choose the correct value for their system.
+- **DOCKER_NET_MTU** - Sets the [MTU](https://en.wikipedia.org/wiki/Maximum_transmission_unit) (Maximum Transmission Unit) for the docker network. On some hosts this value can be different than the docker default of 1500 so this option enables the user to choose the correct value for their system. For example, DOCKER_NET_MTU=1442 must be set so that the app works on the openstack cloud
 - **NVIDIA_CUDA_RUNFILE** - Path to the CUDA Toolkit runfile that will be installed in the *genui-gpuworker* image.
 - **NVIDIA_VISIBLE_DEVICES** - Integer ID of the GPU that should be exposed to the deployed *genui-gpuworker* image. You can display GPUs connected to your host system with `nvidia-smi -L`. If you have multiple GPUs, you should run one instance of *genui-gpuworker* per GPU.
 - **GENUI_DOCKER_IMAGE_PREFIX** - The prefix to use for the docker image repository. Normally,

@@ -89,7 +89,12 @@ volumes:
   static:
   frontend:
 
-# DOCKER_NET_MTU=1442 must be set so that the app works on the openstack cloud
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
+
 #networks:
 #  genui_front:
 #    name: genui_front
