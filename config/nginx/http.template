@@ -1,6 +1,6 @@
 upstream web {
     ip_hash;
-    server genui:${GENUI_BACKEND_PORT};
+    server genui:${GENUI_PORT};
 }
 
 server {
@@ -25,11 +25,11 @@ server {
 
     # Pass request to the genui backend container
     location / {
-        proxy_pass ${GENUI_BACKEND_PROTOCOL}://genui:${GENUI_BACKEND_PORT}/;
+        proxy_pass ${GENUI_PROTOCOL}://genui:${GENUI_PORT}/;
     }
 
-    listen ${GENUI_BACKEND_PORT};
-    server_name ${GENUI_BACKEND_HOST};
+    listen ${GENUI_PORT};
+    server_name ${GENUI_HOST};
     root /usr/share/nginx/html;
     add_header Strict-Transport-Security "max-age=31536000" always;
 }

@@ -2,101 +2,102 @@ version: '3.7'
 
 services:
   db:
-    image: informaticsmatters/rdkit-cartridge-debian:Release_2019_09_2
+    image: informaticsmatters/rdkit-cartridge-debian:${POSTGRES_RDKIT_RELEASE:-Release_2019_09_2}
     environment:
-      - POSTGRES_DB
-      - POSTGRES_USER
+      - POSTGRES_DB=${POSTGRES_DB:-genui}
+      - POSTGRES_USER=${POSTGRES_USER:-genui}
       - POSTGRES_PASSWORD
     volumes:
-      - ./data/database/:/var/lib/postgresql/data/
-    networks:
-      - genui_back
+      - ${GENUI_DATA_MOUNT:-./genuidata}/database/:/var/lib/postgresql/data/
+#    networks:
+#      - genui_back
   redis:
     image: "redis:alpine"
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD}
-    networks:
-      - genui_back
+#    networks:
+#      - genui_back
   genui-main:
-    image: ${GENUI_DOCKER_IMAGE_REPO}/genui-main:${GENUI_DOCKER_IMAGE_TAG}
+    image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-main:${GENUI_DOCKER_IMAGE_TAG:-latest}
     container_name: genui
     build:
       context: .
       dockerfile: Dockerfile-main
       args:
-        GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG}
-        GENUI_DOCKER_IMAGE_REPO: ${GENUI_DOCKER_IMAGE_REPO}
+        GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
+        GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
     environment:
-      - GENUI_BACKEND_PROTOCOL
-      - GENUI_BACKEND_HOST
-      - GENUI_BACKEND_PORT
-      - DJANGO_SETTINGS_MODULE
+      - GENUI_BACKEND_PROTOCOL=${GENUI_PROTOCOL}
+      - GENUI_BACKEND_HOST=${GENUI_HOST}
+      - GENUI_BACKEND_PORT=${GENUI_PORT}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-genui.settings.prod}
       - GENUI_BACKEND_SECRET
-      - POSTGRES_DB
-      - POSTGRES_USER
+      - POSTGRES_DB=${POSTGRES_DB:-genui}
+      - POSTGRES_USER=${POSTGRES_USER:-genui}
       - POSTGRES_PASSWORD
-      - POSTGRES_HOST
-      - REDIS_HOST
+      - POSTGRES_HOST=${POSTGRES_HOST:-db}
+      - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PASSWORD
-      - REACT_APP_GENUI_BACKEND_ROOT_URL=${GENUI_BACKEND_PROTOCOL}://${GENUI_BACKEND_HOST}:${GENUI_BACKEND_PORT}/
-      - REACT_APP_GENUI_DEPLOY_VERSION=${GENUI_DOCKER_IMAGE_TAG}
-      - GENUI_FRONTEND_APP_PATH
+      - REACT_APP_GENUI_BACKEND_ROOT_URL=${GENUI_PROTOCOL}://${GENUI_HOST}:${GENUI_PORT}/
+      - REACT_APP_GENUI_DEPLOY_VERSION=${GENUI_DOCKER_IMAGE_TAG:-latest}
+      - GENUI_FRONTEND_APP_PATH=${GENUI_FRONTEND_APP_PATH:-/app}
       - GENUI_BUILD_FRONTEND=${GENUI_BUILD_FRONTEND:-1}
-      - PUBLIC_URL=${GENUI_FRONTEND_APP_PATH}
-      - GENUI_USER
-      - GENUI_USER_GROUP
+      - PUBLIC_URL=${GENUI_FRONTEND_APP_PATH:-/app}
+      - GENUI_USER=${GENUI_USER:-root}
+      - GENUI_USER_GROUP=${GENUI_USER_GROUP:-root}
     entrypoint: /genui/entrypoint-main.sh
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
-      - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
+      - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
+      - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}
       - static:/genui/data/files/static/
       - frontend:/genui/src/genui-gui/build/
       - ./config/nginx/certs/:/etc/certs
-      - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
-      - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
-      - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/passwd:/etc/passwd:ro
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/shadow:/etc/shadow:ro
     expose:
-      - ${GENUI_BACKEND_PORT}
+      - ${GENUI_PORT}
     depends_on:
       - db
       - redis
-    networks:
-      - genui_front
-      - genui_back
+#    networks:
+#      - genui_front
+#      - genui_back
   nginx:
     image: nginx:latest
+    container_name: genui-nginx
     environment:
-      - GENUI_BACKEND_PROTOCOL
-      - GENUI_BACKEND_HOST
-      - GENUI_BACKEND_PORT
-      - GENUI_FRONTEND_APP_PATH
-      - NGINX_CONF_TEMPLATE=${NGINX_CONF_TEMPLATE:-nginx.conf.template}
-    command: /bin/bash -c "envsubst '$$GENUI_BACKEND_PROTOCOL $$GENUI_BACKEND_HOST $$GENUI_BACKEND_PORT $$GENUI_FRONTEND_APP_PATH' < /etc/nginx/conf.d/$$NGINX_CONF_TEMPLATE > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
+      - GENUI_PROTOCOL
+      - GENUI_HOST
+      - GENUI_PORT
+      - GENUI_FRONTEND_APP_PATH=${GENUI_FRONTEND_APP_PATH:-/app}
+      - NGINX_CONF_TEMPLATE=${GENUI_PROTOCOL}.template
+    command: /bin/bash -c "envsubst '$$GENUI_PROTOCOL $$GENUI_HOST $$GENUI_PORT $$GENUI_FRONTEND_APP_PATH' < /etc/nginx/conf.d/$$NGINX_CONF_TEMPLATE > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
     ports:
-      - "${GENUI_BACKEND_PORT}:${GENUI_BACKEND_PORT}"
+      - "${GENUI_PORT}:${GENUI_PORT}"
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/usr/share/nginx/html/downloads:ro
+      - ${GENUI_DATA_MOUNT:-./genuidata}/media:/usr/share/nginx/html/downloads:ro
       - static:/usr/share/nginx/html/static:ro
       - frontend:/usr/share/nginx/html/app:ro
       - ./config/nginx/:/etc/nginx/conf.d
     depends_on:
       - genui-main
-    networks:
-      - genui_front
+#    networks:
+#      - genui_front
 
 volumes:
   static:
   frontend:
 
 # DOCKER_NET_MTU=1442 must be set so that the app works on the openstack cloud
-networks:                                
-  genui_front:
-    name: genui_front
-    driver: bridge                       
-    driver_opts:                         
-      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
-  genui_back:
-    name: genui_back
-    driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
+#networks:
+#  genui_front:
+#    name: genui_front
+#    driver: bridge
+#    driver_opts:
+#      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
+#  genui_back:
+#    name: genui_back
+#    driver: bridge
+#    driver_opts:
+#      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}

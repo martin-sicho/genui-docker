@@ -1,6 +1,6 @@
 ARG GENUI_DOCKER_IMAGE_TAG=latest
-ARG GENUI_DOCKER_IMAGE_REPO=sichom
-FROM ${GENUI_DOCKER_IMAGE_REPO}/genui-base:${GENUI_DOCKER_IMAGE_TAG}
+ARG GENUI_DOCKER_IMAGE_PREFIX=sichom
+FROM ${GENUI_DOCKER_IMAGE_PREFIX}/genui-base:${GENUI_DOCKER_IMAGE_TAG}
 
 # setup dependencies
 # wait-for-it: for the worker to wait until the backend is online

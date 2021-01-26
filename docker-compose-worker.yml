@@ -2,52 +2,44 @@ version: '3.7'
 
 services:
   celery:
-    image: ${GENUI_DOCKER_IMAGE_REPO}/genui-worker:${GENUI_DOCKER_IMAGE_TAG}
+    image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-worker:${GENUI_DOCKER_IMAGE_TAG:-latest}
+    container_name: genui-${GENUI_CELERY_NAME:-celery}
     build:
       context: .
       dockerfile: Dockerfile-worker
       args:
-        GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG}
-        GENUI_DOCKER_IMAGE_REPO: ${GENUI_DOCKER_IMAGE_REPO}
-    user: ${GENUI_USER_ID}:${GENUI_USER_GROUP_ID}
+        GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
+        GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
+    user: ${GENUI_USER_ID:-0}:${GENUI_USER_GROUP_ID:-0}
     environment:
-      - DJANGO_SETTINGS_MODULE
-      - GENUI_BACKEND_PROTOCOL
-      - GENUI_BACKEND_HOST
-      - GENUI_BACKEND_PORT
+      - GENUI_BACKEND_PROTOCOL=${GENUI_PROTOCOL}
+      - GENUI_BACKEND_HOST=${GENUI_HOST}
+      - GENUI_BACKEND_PORT=${GENUI_PORT}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-genui.settings.prod}
       - GENUI_BACKEND_SECRET
-      - POSTGRES_DB
-      - POSTGRES_USER
+      - POSTGRES_DB=${POSTGRES_DB:-genui}
+      - POSTGRES_USER=${POSTGRES_USER:-genui}
       - POSTGRES_PASSWORD
-      - POSTGRES_HOST
-      - REDIS_HOST
+      - POSTGRES_HOST=${POSTGRES_HOST:-db}
+      - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PASSWORD
-      - GENUI_USER
-      - GENUI_USER_GROUP
-      - GENUI_CELERY_NAME
-      - GENUI_CELERY_QUEUES
-      - GENUI_CELERY_CONCURRENCY
-    command: wait-for-it genui:${GENUI_BACKEND_PORT} -t 3600 -- celery worker -O fair --prefetch-multiplier 1 -c ${GENUI_CELERY_CONCURRENCY} -Q ${GENUI_CELERY_QUEUES} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME}@%h
+      - GENUI_USER=${GENUI_USER:-root}
+      - GENUI_USER_GROUP=${GENUI_USER_GROUP:-root}
+      - GENUI_CELERY_NAME=${GENUI_CELERY_NAME:-celery}
+      - GENUI_CELERY_QUEUES=celery
+      - GENUI_CELERY_CONCURRENCY=${GENUI_CELERY_CONCURRENCY:-0}
+    command: wait-for-it ${GENUI_MAIN_NODE_HOST:-genui}:${GENUI_PORT} -t 3600 -- celery worker -O fair --prefetch-multiplier 1 -c ${GENUI_CELERY_CONCURRENCY:-0} -Q ${GENUI_CELERY_QUEUES:-celery} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME:-celery}@%h
     volumes:
-      - ${GENUI_DATA_MOUNT}/media:/genui/data/files/media/
-      - ${GENUI_DATA_MOUNT}/home:/home/${GENUI_USER}
-      - ${DOCKER_USER_CONFIG_MOUNT}/group:/etc/group:ro
-      - ${DOCKER_USER_CONFIG_MOUNT}/passwd:/etc/passwd:ro
-      - ${DOCKER_USER_CONFIG_MOUNT}/shadow:/etc/shadow:ro
-    networks:
-      - genui_back
-  #  # use this to define a periodic task
-  #  celery-beat:
-  #    build: .
-  #    command: celery -A proj beat -l info
-  #    volumes:
-  #      - .:/genui
-  #    depends_on:
-  #      - genui_db
-  #      - redis
-networks:
-  genui_back:
-    name: genui_back
-    driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: ${DOCKER_NET_MTU}
+      - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
+      - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/passwd:/etc/passwd:ro
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/shadow:/etc/shadow:ro
+#    networks:
+#      - genui_back
+#networks:
+#  genui_back:
+#    name: genui_back
+#    driver: bridge
+#    driver_opts:
+#      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}

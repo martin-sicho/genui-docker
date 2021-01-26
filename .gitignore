@@ -13,7 +13,7 @@ out
 gen
 
 # ignore the standard data mount
-/data/
+/genuidata
 
 # database files
 *.sqlite3
