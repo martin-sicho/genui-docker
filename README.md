@@ -54,9 +54,9 @@ Then you should be able to use the `genui-gpuworker` image without problems. You
 If you just want to quickly test the newest publicly available version of the app on your local machine, you can pull the latest docker images from Docker Hub:
 
 ```bash
-docker pull sichom/genui-main:latest
-docker pull sichom/genui-worker:latest
-docker pull sichom/genui-gpuworker:latest
+docker pull sichom/genui-main
+docker pull sichom/genui-worker
+docker pull sichom/genui-gpuworker
 ```
 
 and setup all services to run locally:
@@ -74,9 +74,10 @@ docker-compose -f docker-compose-main.yml -f docker-compose-gpuworker.yml up
 # docker-compose -f docker-compose-main.yml -f docker-compose-worker.yml up # if you do not have an NVIDIA GPU
 ```
 
-You should now be able to access the GUI at `http://localhost:8080/app/` and see the API documentation at `http://localhost:8080/api/`. Check the *Environment Variables Reference* at the end of this document 
-to learn about the settings we chose and other variables that can be set to configure your deployment.
-Note that the variables defined in the `${REPO_ROOT}/.env` are automatically loaded by Docker Compose so you can save some common variables there and save yourself some space on the command line.
+You should now be able to access the GUI at `http://localhost:8000/app/` and see the API documentation at `http://localhost:8000/api/`. Check the *[Environment Variables Reference](#Environment Variables Reference)* at the end of this document 
+to learn about these settings and other variables that can be set.
+Note that the variables defined in the `${REPO_ROOT}/.env` are automatically loaded by Docker Compose so you can save some common variables there and save yourself some space on the command line. If you want to look into other deployment strategies, check the *[Deployment Scenarios](#Deployment Scenarios)*
+section.
 
 # Building Images from Source
 
@@ -146,7 +147,7 @@ If you are deploying on a single machine, the task is very simple
 with Docker Compose. Here is a more involved production-ready example
 with one basic worker and one GPU worker. We will use an environment 
 file for this one because we will reuse some variables for different calls
-to Docker Compose:
+to *docker-compose*:
 
 ```bash
 # ${REPO_ROOT}/.env
