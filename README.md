@@ -28,7 +28,6 @@ There are a few things you have to do on your host before you deploy. Your setup
 If you have NVIDIA graphics cards, you can use the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to build a worker image that will expose your GPUs to the processes inside the container. The first step is to install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/) on your host. In order to use the runtime from docker-compose, you will have to set it as the default runtime for the Docker daemon. Edit or create the `/etc/docker/daemon.json` on your system and add the following:
 
 ```json
-
 {
     "default-runtime": "nvidia",
     "runtimes": {
@@ -134,6 +133,29 @@ Then you can set the **NVIDIA_CUDA_RUNFILE** environment variable to the path of
 ```bash
 docker build --build-arg NVIDIA_CUDA_RUNFILE=path_to_your_runfile -t your_repo/genui-gpuworker:your_tag -f Dockerfile-gpuworker .
 # for example: docker build --build-arg NVIDIA_CUDA_RUNFILE=./config/nvidia/cuda_11.2.0_460.27.04_linux.run -t sichom/genui-gpuworker:latest -f Dockerfile-gpuworker .
+```
+
+## Building All Images at Once
+
+It might be useful to build all GenUI images at once and automatically push
+them to your repository on Docker Hub. The `build.sh` and `push.sh` are
+designated just for that.
+
+Call `build.sh` like so to build images with a given tag:
+
+```bash
+GENUI_DOCKER_IMAGE_PREFIX=your_repo \
+GENUI_GENUI_DOCKER_IMAGE_TAG=your_tag \
+NVIDIA_CUDA_RUNFILE=./config/nvidia/cuda_11.2.0_460.27.04_linux.run \
+./build.sh
+```
+
+and then use `push.sh` to automatically tag them and push them to your repository:
+
+```bash
+GENUI_DOCKER_IMAGE_PREFIX=your_repo \
+GENUI_GENUI_DOCKER_IMAGE_TAG=your_tag \
+./push.sh
 ```
 
 # Deployment Scenarios
