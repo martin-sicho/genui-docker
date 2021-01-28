@@ -2,8 +2,14 @@ ARG GENUI_DOCKER_IMAGE_TAG=latest
 ARG GENUI_DOCKER_IMAGE_PREFIX=sichom
 FROM ${GENUI_DOCKER_IMAGE_PREFIX}/genui-base:${GENUI_DOCKER_IMAGE_TAG}
 
-# setup dependencies
-# wait-for-it: for the worker to wait until the backend is online
-RUN apt-get install -y --no-install-recommends wait-for-it
+# setup arguments
+ARG ROOT_DIR=/genui
+ARG BACKEND_DIR=./src/genui
+
+# setup environment variables
+ENV GENUI_BACKEND_DIR=${ROOT_DIR}/${BACKEND_DIR}
+
+# copy over the sources
+COPY ${BACKEND_DIR} ${GENUI_BACKEND_DIR}
 
 WORKDIR ${GENUI_BACKEND_DIR}/src/

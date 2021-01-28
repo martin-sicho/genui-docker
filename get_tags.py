@@ -7,7 +7,7 @@ On: 27.01.21, 9:31
 
 import os
 DOCKER_REPO_PREFIX = 'sichom' if not 'GENUI_DOCKER_IMAGE_PREFIX' in os.environ else os.environ['GENUI_DOCKER_IMAGE_PREFIX']
-IMAGES = ('genui-base', 'genui-main', 'genui-worker', 'genui-gpuworker')
+IMAGES = ('genui-base', 'genui-base-cuda', 'genui-main', 'genui-worker', 'genui-gpuworker')
 
 def main(args):
     # get backend version

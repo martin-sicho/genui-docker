@@ -1,0 +1,25 @@
+# first stage -- install CUDA
+ARG GENUI_DOCKER_IMAGE_TAG=latest
+ARG GENUI_DOCKER_IMAGE_PREFIX=sichom
+FROM ${GENUI_DOCKER_IMAGE_PREFIX}/genui-base:${GENUI_DOCKER_IMAGE_TAG} as installer
+
+# install the cuda toolkit and its dependencies
+ARG NVIDIA_CUDA_RUNFILE=./cuda_install.run
+RUN apt-get install -y --no-install-recommends gcc
+COPY ./${NVIDIA_CUDA_RUNFILE} ./cuda_install.run
+RUN mkdir /opt/cuda/ && sh ./cuda_install.run --silent --toolkit --toolkitpath=/opt/cuda/ && rm cuda_install.run
+
+# second stage -- move installation to the final image
+ARG GENUI_DOCKER_IMAGE_TAG=latest
+ARG GENUI_DOCKER_IMAGE_PREFIX=sichom
+FROM ${GENUI_DOCKER_IMAGE_PREFIX}/genui-base:${GENUI_DOCKER_IMAGE_TAG} AS final
+
+# COPY stuff from previous stage
+COPY --from=installer /opt/cuda /opt/cuda
+
+# set the environment variables
+ENV PATH /opt/cuda/bin/:$PATH
+ENV LD_LIBRARY_PATH /opt/cuda/lib:/opt/cuda/lib64
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+LABEL com.nvidia.volumes.needed="nvidia_driver"

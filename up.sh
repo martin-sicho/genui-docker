@@ -27,7 +27,7 @@ GENUI_CELERY_CONCURRENCY=1 \
 GENUI_CELERY_QUEUES=gpu \
 NVIDIA_VISIBLE_DEVICES=$gpu \
 eval "docker-compose \
-  --project-name "$PROJECT_NAME-gpu$gpu" \
+  --project-name "$PROJECT_NAME" \
   -f docker-compose-gpuworker.yml \
   $COMMAND"
 done

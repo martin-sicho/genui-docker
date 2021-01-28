@@ -3,15 +3,14 @@ version: '3.7'
 services:
     celery-gpu:
         restart: "always"
-        container_name: genui-${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}
         image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-gpuworker:${GENUI_DOCKER_IMAGE_TAG:-latest}
+        container_name: genui-${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}
         build:
+          context: .
+          dockerfile: Dockerfile-gpuworker
           args:
             GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
             GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
-            NVIDIA_CUDA_RUNFILE: ${NVIDIA_CUDA_RUNFILE:-./config/nvidia/cuda.run}
-          context: .
-          dockerfile: Dockerfile-gpuworker
         user: ${GENUI_USER_ID:-0}:${GENUI_USER_GROUP_ID:-0}
         environment:
           - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-0}
@@ -46,3 +45,9 @@ services:
 #    driver: bridge
 #    driver_opts:
 #      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}

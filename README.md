@@ -1,11 +1,12 @@
 # About
 
-The files in this repository are used to build and deploy the GenUI platform using Docker images. In total, we define four Docker images for GenUI:
+The files in this repository are used to build and deploy the GenUI platform using Docker images. In total, we define five Docker images for GenUI:
  
- 1. *genui-base* -- A base image that contains the Python backend and all its dependencies. It is used to derive all the other images below. On its own this image can be used to deploy just the backend application without the frontend GUI. There is currently no Docker Compose file for this setup, but it could be achieved by simplification of [`docker-compose-main.yml`](./docker-compose-main.yml).
- 2. *genui-main* -- This image is derived from *genui-base* and adds the GenUI frontend GUI. Therefore, this image contains the complete GenUI web application. It can be deployed as a service through the [`docker-compose-main.yml`](./docker-compose-main.yml) file, which also handles deployment of the PostgeSQL database and Redis message queue.
- 3. *genui-worker* -- An image intended to be deployed as a worker consuming Celery tasks submitted to the Redis message queue. At least one worker node consuming tasks from all queues must be deployed in order for the application to function. Worker nodes can be deployed on the same host as the main application (see *[Single Machine Deployment](#Single Machine Deployment)*) or they can be setup in multiple copies spanning over an infrastructure of computers (see *[Distributed Deployment](#Distributed Deployment)*).
- 4. *genui-gpuworker* --  An extended *genui-worker* image with access to one or more NVIDIA GPUs on the host system.
+ 1. *genui-base* -- A base image that contains all dependencies of the [Python backend](https://github.com/martin-sicho/genui). It is used to derive all the other images below. It should only be necessary to rebuild this image if the dependencies of the backend change.
+ 1. *genui-base-cuda* -- This base image is derived from *genui-base* and contains the CUDA Toolkit in addition (see *[The NVIDIA CUDA Base Image](#The NVIDIA CUDA Base Image)*). Like in the case of *genui-base*, you do not have to rebuild this image if the dependencies of the backend application did not change.
+ 2. *genui-main* -- This image is derived from *genui-base* and adds [GenUI frontend GUI](https://github.com/martin-sicho/genui-gui) and also the source code for the Python backend. Therefore, this image contains the complete GenUI web application and its source code. It can be deployed as a service through the [`docker-compose-main.yml`](./docker-compose-main.yml) file, which also handles deployment of the PostgeSQL database and Redis message queue.
+ 3. *genui-worker* -- Image intended to be deployed as a worker consuming Celery tasks submitted to the Redis message queue. At least one worker node consuming tasks from all queues must be deployed in order for the main application to fully function. Worker nodes can be deployed on the same host as the main application (see *[Single Machine Deployment](#Single Machine Deployment)*) or they can be setup in multiple copies spanning over an infrastructure of computers (see *[Distributed Deployment](#Distributed Deployment)*). It is also based on *genui-base*.
+ 4. *genui-gpuworker* --  This worker image can be configured to access one or more NVIDIA GPUs on the host system. It is based on *genui-base-cuda*.
  
 # Setting up Your Host
 
@@ -86,7 +87,7 @@ If you want to build your own GenUI docker images, you can build them using the 
 git submodule update --init --recursive
 ```
 
-The submodules will be checked out to `${REPO_ROOT}/src/`. If you want, you can go to each module and check out the versions of the backend and GUI code that you want. If you want to replace these submodules with your own repositories, just replace the appropriate URLs in `${REPO_ROOT}/.gitmodules` before running the command above.
+The submodules will be checked out to `${REPO_ROOT}/src/`. If you want, you can go to each module folder and check out the versions of the backend and frontend that you want. If you want to replace these submodules with your own repositories, just replace the appropriate URLs in `${REPO_ROOT}/.gitmodules` before running the command above.
 
 ## The Base Image
 
@@ -97,7 +98,23 @@ docker build -t your_repo/genui-base:your_tag -f Dockerfile-base .
 # for example: docker build -t sichom/genui-base:latest -f Dockerfile-base .
 ```
 
-## The Main Image
+## The NVIDIA CUDA Base Image
+
+This base image is meant to be used for applications that require GPU support. In particular, workers that want to consume tasks submitted to the *gpu* queue and take advantage of GPU hardware will have to be based on this image. You can build images for any desired CUDA Toolkit version. You can [download](https://developer.nvidia.com/cuda-toolkit-archive) the CUDA installation runfile you want and place it somewhere in the context of your build (`${REPO_ROOT}/config/nvidia`, for example). You should get a runfile for Debian/Ubuntu since the GenUI images are all based on Debian. On Linux, you can easily download the runfile with `wget` like so:
+
+```bash
+mkdir -p config/nvidia
+wget http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_11.2.0_460.27.04_linux.run -P ./config/nvidia/
+```
+
+Once you have the runfile, you just need to specify the **NVIDIA_CUDA_RUNFILE** build argument and build the image: 
+
+```bash
+docker build --build-arg NVIDIA_CUDA_RUNFILE=path_to_your_runfile -t your_repo/genui-base-cuda:your_tag -f Dockerfile-base-cuda .
+# for example: docker build --build-arg NVIDIA_CUDA_RUNFILE=./config/nvidia/cuda_11.2.0_460.27.04_linux.run -t sichom/genui-base-cuda:latest -f Dockerfile-base-cuda .
+```
+
+## The Main App Image
 
 If you successfully built the `genui-base` image, you can just build the 
 main image the same way:
@@ -117,22 +134,15 @@ docker build -t your_repo/genui-worker:your_tag -f Dockerfile-worker .
 ```
 
 This image is meant for any tasks that do not require GPU acceleration. Such Celery
-tasks should be queued to the default *celery* queue by the backend service. You can configure the queues that the worker consumes during deployment with the **GENUI_CELERY_QUEUES** environment, which is a comma-separated list of queue names.
+tasks should be queued to the default *celery* queue by the backend service. You can configure the queues that the worker consumes during deployment with the **GENUI_CELERY_QUEUES** environment variable, which is a comma-separated list of queue names.
 
-### The GPU Worker Image
+## The GPU Worker Image
 
-If you want the tasks submitted to the *gpu* queue to take advantage of GPUs on your system, you will need this image. You can build this image with a given CUDA Toolkit version. You can [download](https://developer.nvidia.com/cuda-toolkit-archive) the desired CUDA installation runfile and place it in `${REPO_ROOT}/config/nvidia`, for example. You should download a runfile for Debian/Ubuntu since the GenUI images are all based on Debian. On Linux, you can download the runfile with `wget` like so:
-
-```bash
-mkdir -p config/nvidia
-wget http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_11.2.0_460.27.04_linux.run -P ./config/nvidia/
-```
-
-Then you can set the **NVIDIA_CUDA_RUNFILE** environment variable to the path of the runfile and build your `genui-gpuworker`:
+If you want to use a worker with GPU support for the tasks submitted to the *gpu* queue, you build the image the same way, but using a different Dockerfile:
 
 ```bash
-docker build --build-arg NVIDIA_CUDA_RUNFILE=path_to_your_runfile -t your_repo/genui-gpuworker:your_tag -f Dockerfile-gpuworker .
-# for example: docker build --build-arg NVIDIA_CUDA_RUNFILE=./config/nvidia/cuda_11.2.0_460.27.04_linux.run -t sichom/genui-gpuworker:latest -f Dockerfile-gpuworker .
+docker build -t your_repo/genui-gpuworker:your_tag -f Dockerfile-gpuworker .
+# for example: docker build -t sichom/genui-gpuworker:latest -f Dockerfile-gpuworker .
 ```
 
 ## Building All Images at Once
@@ -203,8 +213,7 @@ The **GENUI_CELERY_CONCURRENCY** variable defines how many tasks the worker shou
 The value of 0 means that all available CPU cores will be used.
 If you do not have a GPU, just set **GENUI_CELERY_QUEUES** to `celery,gpu`
 so that the worker also consumes the GPU tasks. If you have a GPU 
-installed on your system, you can spawn the GPU worker service to handle GPU accelerated 
-tasks like so:
+installed on your system, you can consume the *gpu* queue by spawning the GPU worker service in addition to the regular worker:
 
 ```bash
 POSTGRES_PASSWORD=some_secure_password \
