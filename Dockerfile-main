@@ -11,20 +11,20 @@ ARG FRONTEND_DIR=./src/genui-gui
 ENV GENUI_BACKEND_DIR=${ROOT_DIR}/${BACKEND_DIR}
 ENV GENUI_FRONTEND_DIR=${ROOT_DIR}/${FRONTEND_DIR}
 
+# authbind: to allow the app process to bind port 443 if run as nonroot
+RUN apt-get install -y --no-install-recommends authbind
+
+# install the frontend app dependencies
+RUN conda install -c conda-forge nodejs=12.4.0 && conda clean --all -y
+COPY ${FRONTEND_DIR}/package.json ${GENUI_FRONTEND_DIR}/package.json
+RUN npm --prefix ${GENUI_FRONTEND_DIR} install ${GENUI_FRONTEND_DIR}
+
 # copy over the sources
 COPY ${BACKEND_DIR} ${GENUI_BACKEND_DIR}
 COPY ${FRONTEND_DIR} ${GENUI_FRONTEND_DIR}
 
 # copy the entrypoint script
 COPY ./entrypoint-main.sh ${ROOT_DIR}/entrypoint-main.sh
-
-# authbind: to allow the app process to bind port 443 if run as nonroot
-RUN apt-get install -y --no-install-recommends authbind
-RUN conda install -c conda-forge nodejs=12.4.0 && conda clean --all -y
-
-# install the frontend app dependencies
-COPY ${FRONTEND_DIR}/package.json ${GENUI_FRONTEND_DIR}/package.json
-RUN npm --prefix ${GENUI_FRONTEND_DIR} install ${GENUI_FRONTEND_DIR}
 
 # set working directory to where the manage.py lives
 WORKDIR ${GENUI_BACKEND_DIR}/src/
