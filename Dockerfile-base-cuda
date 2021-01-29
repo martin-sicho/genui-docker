@@ -7,8 +7,10 @@ FROM ${GENUI_DOCKER_IMAGE_PREFIX}/genui-base:${GENUI_DOCKER_IMAGE_TAG} as instal
 ARG NVIDIA_CUDA_RUNFILE=./cuda_install.run
 COPY ./${NVIDIA_CUDA_RUNFILE} ./cuda_install.run
 
-# install the cuda toolkit and its dependencies
+# install compilers
 RUN apt-get install -y --no-install-recommends gcc
+
+# install the cuda toolkit
 RUN mkdir /opt/cuda/ && sh ./cuda_install.run --silent --toolkit --toolkitpath=/opt/cuda/ && rm cuda_install.run
 
 # second stage -- move installation to the final image
