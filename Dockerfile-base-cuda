@@ -3,10 +3,12 @@ ARG GENUI_DOCKER_IMAGE_TAG=latest
 ARG GENUI_DOCKER_IMAGE_PREFIX=sichom
 FROM ${GENUI_DOCKER_IMAGE_PREFIX}/genui-base:${GENUI_DOCKER_IMAGE_TAG} as installer
 
-# install the cuda toolkit and its dependencies
+# copy the runfile
 ARG NVIDIA_CUDA_RUNFILE=./cuda_install.run
-RUN apt-get install -y --no-install-recommends gcc
 COPY ./${NVIDIA_CUDA_RUNFILE} ./cuda_install.run
+
+# install the cuda toolkit and its dependencies
+RUN apt-get install -y --no-install-recommends gcc
 RUN mkdir /opt/cuda/ && sh ./cuda_install.run --silent --toolkit --toolkitpath=/opt/cuda/ && rm cuda_install.run
 
 # second stage -- move installation to the final image
