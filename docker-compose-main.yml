@@ -4,24 +4,26 @@ services:
   db:
     restart: "always"
     image: informaticsmatters/rdkit-cartridge-debian:${POSTGRES_RDKIT_RELEASE:-Release_2019_09_2}
+    container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}db
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-genui}
       - POSTGRES_USER=${POSTGRES_USER:-genui}
       - POSTGRES_PASSWORD
     volumes:
       - ${GENUI_DATA_MOUNT:-./genuidata}/database/:/var/lib/postgresql/data/
-#    networks:
-#      - genui_back
+    networks:
+      - genui_back
   redis:
     restart: "always"
     image: "redis:alpine"
+    container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}redis
     command: redis-server --requirepass ${REDIS_PASSWORD}
-#    networks:
-#      - genui_back
-  genui-main:
+    networks:
+      - genui_back
+  backend:
     restart: "always"
     image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-main:${GENUI_DOCKER_IMAGE_TAG:-latest}
-    container_name: genui
+    container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend
     build:
       context: .
       dockerfile: Dockerfile-main
@@ -47,6 +49,7 @@ services:
       - PUBLIC_URL=${GENUI_FRONTEND_APP_PATH:-/app}
       - GENUI_USER=${GENUI_USER:-root}
       - GENUI_USER_GROUP=${GENUI_USER_GROUP:-root}
+      - GENUI_CONTAINER_PREFIX=${GENUI_CONTAINER_PREFIX:-genui-docker-}
     entrypoint: /genui/entrypoint-main.sh
     volumes:
       - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
@@ -62,20 +65,21 @@ services:
     depends_on:
       - db
       - redis
-#    networks:
-#      - genui_front
-#      - genui_back
-  nginx:
+    networks:
+      - genui_front
+      - genui_back
+  frontend:
     restart: "always"
     image: nginx:latest
-    container_name: genui-nginx
+    container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}frontend
     environment:
       - GENUI_PROTOCOL
       - GENUI_HOST
       - GENUI_PORT
       - GENUI_FRONTEND_APP_PATH=${GENUI_FRONTEND_APP_PATH:-/app}
       - NGINX_CONF_TEMPLATE=${GENUI_PROTOCOL}.template
-    command: /bin/bash -c "envsubst '$$GENUI_PROTOCOL $$GENUI_HOST $$GENUI_PORT $$GENUI_FRONTEND_APP_PATH' < /etc/nginx/conf.d/$$NGINX_CONF_TEMPLATE > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
+      - BACKEND_DOCKER_HOSTNAME=${GENUI_CONTAINER_PREFIX:-genui-docker-}backend
+    command: /bin/bash -c "envsubst '$$GENUI_PROTOCOL $$GENUI_HOST $$GENUI_PORT $$GENUI_FRONTEND_APP_PATH $$BACKEND_DOCKER_HOSTNAME' < /etc/nginx/conf.d/$$NGINX_CONF_TEMPLATE > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - "${GENUI_PORT}:${GENUI_PORT}"
     volumes:
@@ -84,28 +88,24 @@ services:
       - frontend:/usr/share/nginx/html/app:ro
       - ./config/nginx/:/etc/nginx/conf.d
     depends_on:
-      - genui-main
-#    networks:
-#      - genui_front
+      - backend
+    networks:
+      - genui_front
 
 volumes:
   static:
+    name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}static
   frontend:
+    name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}frontend
 
 networks:
-  default:
+  genui_front:
+    name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}frontend
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
-
-#networks:
-#  genui_front:
-#    name: genui_front
-#    driver: bridge
-#    driver_opts:
-#      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
-#  genui_back:
-#    name: genui_back
-#    driver: bridge
-#    driver_opts:
-#      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
+  genui_back:
+    name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}

@@ -303,6 +303,7 @@ In order to customize the GenUI images for various deployment scenarios, a colle
 - **GENUI_DOCKER_IMAGE_PREFIX** - The prefix to use for the docker image repository. Normally,
 this would be your Docker Hub username.
 - **DOCKER_IMAGE_TAG** - The tag of the GenUI docker image to be build or pull by `docker-compose`.
+- **GENUI_CONTAINER_PREFIX** - Prefix for the running containers of this project. Defaults to `genui-docker-`
 - **DOCKER_USER_CONFIG_MOUNT** - In order to seamlessly map GenUI application data to the host system, the container will require read-only access to the following files:
     - `/etc/group`
     - `/etc/passwd`
@@ -335,6 +336,7 @@ this would be your Docker Hub username.
 - **GENUI_CELERY_NAME** - If we are deploying a celery worker, this will be its name.
 - **GENUI_CELERY_QUEUES** - If a worker is deployed, it will consume tasks from these queues. Use `,` as a separator (for example `celery,gpu`). *Note*: `celery` is the default queue into which all tasks are sent by default. `gpu` is the queue to store tasks meant to be run on a GPU rather than a CPU. 
 - **GENUI_CELERY_CONCURRENCY** - Number of worker processes spawned by the Celery worker. Set to `0` to automatically set this to the number of available CPUs.
+- **GENUI_CELERY_CONTAINER_SUFFIX** - Custom suffix for the Celery worker containers. Makes it possible to spawn multiple worker containers without using a Docker swarm if combined with the `--project-name` parameter of `docker-compose`. Defaults to and empty string.
 - **DJANGO_SETTINGS_MODULE** - Set the Django settings module for the backend app.
     - `genui.settings.prod` for production
     - `genui.settings.stage` for staging (same as production, but with `DEBUG=True`)

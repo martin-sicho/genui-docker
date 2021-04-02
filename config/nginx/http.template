@@ -1,6 +1,6 @@
 upstream web {
     ip_hash;
-    server genui:${GENUI_PORT};
+    server ${BACKEND_DOCKER_HOSTNAME}:${GENUI_PORT};
 }
 
 server {
@@ -25,7 +25,7 @@ server {
 
     # Pass request to the genui backend container
     location / {
-        proxy_pass ${GENUI_PROTOCOL}://genui:${GENUI_PORT}/;
+        proxy_pass ${GENUI_PROTOCOL}://${BACKEND_DOCKER_HOSTNAME}:${GENUI_PORT}/;
     }
 
     listen ${GENUI_PORT};

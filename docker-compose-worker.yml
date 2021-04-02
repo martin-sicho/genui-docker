@@ -4,7 +4,7 @@ services:
   celery:
     restart: "always"
     image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-worker:${GENUI_DOCKER_IMAGE_TAG:-latest}
-    container_name: genui-${GENUI_CELERY_NAME:-celery}
+    container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}${GENUI_CELERY_NAME:-celery}${GENUI_CELERY_CONTAINER_SUFFIX:-}
     build:
       context: .
       dockerfile: Dockerfile-worker
@@ -29,24 +29,19 @@ services:
       - GENUI_CELERY_NAME=${GENUI_CELERY_NAME:-celery}
       - GENUI_CELERY_QUEUES=celery
       - GENUI_CELERY_CONCURRENCY=${GENUI_CELERY_CONCURRENCY:-0}
-    command: wait-for-it ${GENUI_MAIN_NODE_HOST:-genui}:${GENUI_PORT} -t 3600 -- celery worker -O fair --prefetch-multiplier 1 -c ${GENUI_CELERY_CONCURRENCY:-0} -Q ${GENUI_CELERY_QUEUES:-celery} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME:-celery}@%h
+      - GENUI_CONTAINER_PREFIX=${GENUI_CONTAINER_PREFIX:-genui-docker-}
+    command: wait-for-it ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend:${GENUI_PORT} -t 3600 -- celery worker -O fair --prefetch-multiplier 1 -c ${GENUI_CELERY_CONCURRENCY:-0} -Q ${GENUI_CELERY_QUEUES:-celery} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME:-celery}@%h
     volumes:
       - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
       - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/shadow:/etc/shadow:ro
-#    networks:
-#      - genui_back
-#networks:
-#  genui_back:
-#    name: genui_back
-#    driver: bridge
-#    driver_opts:
-#      com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
-
+    networks:
+      - genui_back
 networks:
-  default:
+  genui_back:
+    name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: ${DOCKER_NET_MTU:-1500}
