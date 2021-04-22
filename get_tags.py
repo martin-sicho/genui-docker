@@ -8,6 +8,7 @@ On: 27.01.21, 9:31
 import os
 DOCKER_REPO_PREFIX = 'sichom' if not 'GENUI_DOCKER_IMAGE_PREFIX' in os.environ else os.environ['GENUI_DOCKER_IMAGE_PREFIX']
 IMAGES = ('genui-base', 'genui-base-cuda', 'genui-main', 'genui-worker', 'genui-gpuworker')
+NVIDIA_CUDA_VERSION = '' if not 'NVIDIA_CUDA_VERSION' in os.environ else os.environ['NVIDIA_CUDA_VERSION']
 
 def main(args):
     # get backend version
@@ -37,6 +38,8 @@ def main(args):
             commands.append(command)
             if image == 'genui-main':
                 commands.append(f'docker tag {DOCKER_REPO_PREFIX}/{image}:{source_tag} {DOCKER_REPO_PREFIX}/{image}:frontend-{frontend_version}')
+            if NVIDIA_CUDA_VERSION and (image == 'genui-base-cuda' or image == 'genui-gpuworker'):
+                commands.append(f'docker tag {DOCKER_REPO_PREFIX}/{image}:{source_tag} {DOCKER_REPO_PREFIX}/{image}:cuda-{NVIDIA_CUDA_VERSION}')
     print('\n'.join(commands + push_commands) + '\n')
 if __name__ == "__main__":
     import sys
