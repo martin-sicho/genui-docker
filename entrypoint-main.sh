@@ -18,7 +18,8 @@ python manage.py collectstatic --no-input
 # ensure that only the genui user group has access to media files
 mkdir -p ${GENUI_MEDIA_ROOT}
 chgrp -R ${GENUI_USER_GROUP} ${GENUI_MEDIA_ROOT}
-chmod g+rwxs,a+xs ${GENUI_MEDIA_ROOT} # TODO: all media directories and created files can be listed and read by default -> the application itself needs to take care of revoking the rights to files (this should be noted in the documentation)
+chmod g+rwxs,a+xs ${GENUI_MEDIA_ROOT} # FIXME: all media directories and created files can be listed and read by default -> the application itself needs to take care of revoking the rights to files (this should be noted in the documentation)
+#sudo chmod -R g+rw genuidata/media/ # use this if there are permission issues with imported genui media data
 umask 002
 
 # we disable listing of models and compounds media directories by default
@@ -43,9 +44,8 @@ export CERTFILES=$(if [[ "${GENUI_BACKEND_PROTOCOL}" == "https" ]]; then echo "-
 if [[ "${GENUI_BACKEND_PROTOCOL}" == "https" ]]; then echo "Found SSL certfiles: ${CERTFILES}" ; fi
 echo "Binding backend application to port ${GENUI_BACKEND_PORT} using ${GENUI_BACKEND_PROTOCOL}..."
 
-# comment this out, if you want to pass another command
 exec runuser -u  ${GENUI_USER} -- authbind --deep -- gunicorn --timeout 180 --limit-request-line 0 --graceful-timeout 120 ${CERTFILES} genui.wsgi:application --bind 0.0.0.0:${GENUI_BACKEND_PORT}
 
 # execute the container command as the genui user
-# uncomment if you want to run the server using the command directive in the docker-compose
+# use this if you want to run the server using the command directive in the docker-compose
 #exec runuser -u  ${GENUI_USER} -- "$@"
