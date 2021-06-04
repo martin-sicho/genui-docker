@@ -328,6 +328,8 @@ this would be your Docker Hub username.
       print(get_random_secret_key())
       ```
 - **GENUI_PROTOCOL** - The protocol used to access the GenUI application over the network. Set either to *http* or *https*.
+- **GENUI_SSL_CERTFILE** - Path to the SSL certificate file on your host that you want to use for HTTPS.
+- **GENUI_SSL_KEYFILE** - Path to the SSL key file on your host that you want to use for HTTPS.
 - **GENUI_PORT** - The port used to access the GenUI application over the network. For normal access over https, this should be `443`.
 - **GENUI_HOST** - Sets the GenUI web application hostname.
 - **GENUI_MAIN_NODE_HOST** - Also indicates the hostname of the web application, but it only helps to inform remote worker nodes about the backend host so that they can probe its status and so on. Use **GENUI_HOST** to configure the main node.
