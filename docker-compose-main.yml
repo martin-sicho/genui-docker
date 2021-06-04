@@ -56,7 +56,9 @@ services:
       - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}
       - static:/genui/data/files/static/
       - frontend:/genui/src/genui-gui/build/
-      - ./config/nginx/certs/:/etc/certs
+      - ${GENUI_SSL_CERTFILE:-./config/nginx/certs/localhost.crt}:/etc/certs/${GENUI_HOST}.crt:ro
+      - ${GENUI_SSL_KEYFILE:-./config/nginx/certs/localhost.key}:/etc/certs/${GENUI_HOST}.key:ro
+      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/shadow:/etc/shadow:ro
@@ -87,6 +89,8 @@ services:
       - static:/usr/share/nginx/html/static:ro
       - frontend:/usr/share/nginx/html/app:ro
       - ./config/nginx/:/etc/nginx/conf.d
+      - ${GENUI_SSL_CERTFILE:-./config/nginx/certs/localhost.crt}:/etc/nginx/conf.d/certs/genui.crt:ro
+      - ${GENUI_SSL_KEYFILE:-./config/nginx/certs/localhost.key}:/etc/nginx/conf.d/certs/genui.key:ro
     depends_on:
       - backend
     networks:

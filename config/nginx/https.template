@@ -40,8 +40,8 @@ server {
 
     # SSL properties
     # (http://nginx.org/en/docs/http/configuring_https_servers.html)    
-    ssl_certificate /etc/nginx/conf.d/certs/${GENUI_HOST}.crt;
-    ssl_certificate_key /etc/nginx/conf.d/certs/${GENUI_HOST}.key;
+    ssl_certificate /etc/nginx/conf.d/certs/genui.crt;
+    ssl_certificate_key /etc/nginx/conf.d/certs/genui.key;
     root /usr/share/nginx/html;    
     add_header Strict-Transport-Security "max-age=31536000" always;
 }
