@@ -29,6 +29,7 @@ echo "$(NVIDIA_CUDA_VERSION=${NVIDIA_CUDA_VERSION} GENUI_DOCKER_IMAGE_PREFIX=${R
 read -p "Do you want to proceed? Type YES to confirm: " userInput
 if [[ $userInput != 'YES' ]] || [[ $userInput == '' ]]; then
    echo "Push cancelled by user."
+   exit 1
 else
    echo "OK"
    eval "$(NVIDIA_CUDA_VERSION=${NVIDIA_CUDA_VERSION} python3 get_tags.py $TAG $TAG)"
