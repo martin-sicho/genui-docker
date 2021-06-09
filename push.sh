@@ -2,11 +2,13 @@
 
 set -e
 
-while getopts ":r:t:" opt; do
+while getopts ":r:t:c:" opt; do
   case $opt in
     r) REPO="$OPTARG"
     ;;
     t) TAG="$OPTARG"
+    ;;
+    c) CUDA_VERSION="$OPTARG"
     ;;
     \?) echo "Invalid option -$OPTARG" >&2
     ;;
@@ -15,7 +17,7 @@ done
 
 printf "Argument TAG is %s\n" "$TAG"
 printf "Argument REPO is %s\n" "$REPO"
-NVIDIA_CUDA_VERSION=${NVIDIA_CUDA_VERSION:-""}
+NVIDIA_CUDA_VERSION=${CUDA_VERSION:-""}
 if [ -z "$NVIDIA_CUDA_VERSION" ]
 then
       echo "No CUDA version specified."
