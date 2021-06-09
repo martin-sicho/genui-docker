@@ -59,7 +59,6 @@ services:
       - ${GENUI_SSL_CERTFILE:-./config/nginx/certs/localhost.crt}:/etc/certs/${GENUI_HOST}.crt:ro
       - ${GENUI_SSL_KEYFILE:-./config/nginx/certs/localhost.key}:/etc/certs/${GENUI_HOST}.key:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
-      - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/passwd:/etc/passwd:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/shadow:/etc/shadow:ro
     expose:
