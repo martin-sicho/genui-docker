@@ -31,5 +31,5 @@ if [[ $userInput != 'YES' ]] || [[ $userInput == '' ]]; then
    echo "Push cancelled by user."
 else
    echo "OK"
-   #eval "$(NVIDIA_CUDA_VERSION=${NVIDIA_CUDA_VERSION} python3 get_tags.py $TAG $TAG)"
+   eval "$(NVIDIA_CUDA_VERSION=${NVIDIA_CUDA_VERSION} python3 get_tags.py $TAG $TAG)"
 fi
