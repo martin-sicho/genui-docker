@@ -5,6 +5,7 @@
 /config/nginx/nginx.conf
 /config/.ssh/
 /config/nvidia/*.run
+/BUILD.TXT
 
 # IntelliJ project files
 .idea
