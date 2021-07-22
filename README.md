@@ -1,32 +1,38 @@
 # About
 
-The files in this repository are used to build and deploy the GenUI platform using Docker images. In total, we define five Docker images for GenUI:
+> See [Quick Start](#quick-start) if you want to deploy locally for quick testing.
+
+The files in this repository are used to build and deploy the GenUI platform from Docker images. In total, five Docker images are defined for GenUI:
  
  1. *genui-base* -- A base image that contains all dependencies of the [Python backend](https://github.com/martin-sicho/genui). It is used to derive all the other images below. It should only be necessary to rebuild this image if the dependencies of the backend change.
- 1. *genui-base-cuda* -- This base image is derived from *genui-base* and contains the CUDA Toolkit in addition (see *[The NVIDIA CUDA Base Image](#The NVIDIA CUDA Base Image)*). Like in the case of *genui-base*, you do not have to rebuild this image if the dependencies of the backend application did not change.
- 2. *genui-main* -- This image is derived from *genui-base* and adds [GenUI frontend GUI](https://github.com/martin-sicho/genui-gui) and also the source code for the Python backend. Therefore, this image contains the complete GenUI web application and its source code. It can be deployed as a service through the [`docker-compose-main.yml`](./docker-compose-main.yml) file, which also handles deployment of the PostgeSQL database and Redis message queue.
- 3. *genui-worker* -- Image intended to be deployed as a worker consuming Celery tasks submitted to the Redis message queue. At least one worker node consuming tasks from all queues must be deployed in order for the main application to fully function. Worker nodes can be deployed on the same host as the main application (see *[Single Machine Deployment](#Single Machine Deployment)*) or they can be setup in multiple copies spanning over an infrastructure of computers (see *[Distributed Deployment](#Distributed Deployment)*). It is also based on *genui-base*.
- 4. *genui-gpuworker* --  This worker image can be configured to access one or more NVIDIA GPUs on the host system. It is based on *genui-base-cuda*.
+ 1. *genui-base-cuda* -- This base image is derived from *genui-base* and contains the CUDA Toolkit in addition to the standard backend libraries (see [The NVIDIA CUDA Base Image](#the-nvidia-cuda-base-image)). Like in the case of *genui-base*, this image does not have to be rebuilt if the dependencies of the backend application did not change.
+ 2. *genui-main* -- This image is derived from *genui-base* and adds [GenUI frontend GUI](https://github.com/martin-sicho/genui-gui) and also the source code for the Python backend. Therefore, this image contains the complete GenUI web application and its source code. It can be deployed as a service through the [`docker-compose-main.yml`](./docker-compose-main.yml) file, which also handles deployment of the PostgeSQL database and Redis message queue (see [Deployment Scenarios](#deployment-scenarios)).
+ 3. *genui-worker* -- Image based on *genui-base* intended to be deployed as a worker consuming Celery tasks submitted to the Redis message queue. The worker runs the same code as the backend of *genui-main* and multiple workers consuming different queues can be deployed. Currently, at least one worker node consuming tasks from the *celery* and *gpu* queue must be deployed in order for the main application to fully function. Workers are processes deployed either on the same host as the main application (see [Single Machine Deployment](#single-machine-deployment)) or in multiple copies spanning over an infrastructure of computers (see [Distributed Deployment](#distributed-deployment)).
+ 4. *genui-gpuworker* --  Image based on *genui-base-cuda* that can be configured to access one or more NVIDIA GPUs on the host system and should consume the tasks in the *gpu* queue.
  
 # Setting up Your Host
 
-There are a few things you have to do on your host before you deploy. Your setup will probably vary based on your needs so we will only consider a simple deployment scenario. We will refer to the root of this code repository as `${REPO_ROOT}` in this readme and all commands are assumed to be run from the `${REPO_ROOT}` directory as well.
+There are a few things you have to do on your host before you deploy and your setup will probably vary based on your needs so we will only cover a simple deployment scenario on a single machine in this explanation. We will refer to the root of this code repository as `${REPO_ROOT}` throughout the readme and all commands shown are assumed to be run from the `${REPO_ROOT}` directory if not stated otherwise.
 
 ## Prerequisites
 
-1. So far this app and its components are intended to be deployed on Linux hosts and deployments on Windows were not tested, but should be possible after some adjustments. Please, let us know your experience on the issue tracker.
-2. You will need to install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/). If you want to take advantage of NVIDIA GPUs installed on your system, you will also need to setup the `nvidia-container-runtime` on your host (see *[Enabling GPUs in Docker](#Enabling GPUs in Docker)* below).
-3. If you want to deploy using an HTTPS certificate, you will have to place the certificate and the key in the `${REPO_ROOT}/config/nginx/certs/` directory. The names of the files should be consistent with the hostname on which you are deploying the *genui-main* services. For testing, you can easily generate a temporary unsigned certificate with `openssl`. For example, if you are deploying the application on your `localhost`, you would generate the key like this:
+1. So far this app and its components are intended to be deployed on Linux hosts and deployments under Windows or Mac were not tested, but should be possible after some adjustments. Please, let us know your experience on the issue tracker.
+2. You will need to install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/). If you want to take advantage of NVIDIA GPUs installed on your system, you will also need to setup the `nvidia-container-runtime` on your host (see [Enabling GPUs in Docker](#enabling-gpus-in-docker) below).
+3. If you want to deploy with HTTPS, you should point to the certificate and the associated key on the host filesystem with the `${GENUI_SSL_CERTFILE}` and `${GENUI_SSL_KEYFILE}` environment variables (see [Environment Variables Reference](#environment-variables-reference) for these and other configuration options)
+
+For testing, you can easily generate a temporary unsigned certificate with `openssl`. For example, if you are deploying the application on your `localhost`, you could generate the key like this:
 
    ```bash
    # run in ${REPO_ROOT}
    mkdir config/nginx/certs
    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out config/nginx/certs/localhost.crt -keyout config/nginx/certs/localhost.key 
    ```
+
+Then you just point to the generated files via `${GENUI_SSL_CERTFILE}` and `${GENUI_SSL_KEYFILE}`.
    
 ### Enabling GPUs in Docker
 
-If you have NVIDIA graphics cards, you can use the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to build a worker image that will expose your GPUs to the processes inside the container. The first step is to install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/) on your host. In order to use the runtime from docker-compose, you will have to set it as the default runtime for the Docker daemon. Edit or create the `/etc/docker/daemon.json` on your system and add the following:
+If you have NVIDIA graphics cards, you can use the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to build or deploy a worker image that will expose your GPUs to the processes inside the container. The first step is to install [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/) on your host. In order to use the runtime from docker-compose, you will have to set it as the default runtime for the Docker daemon. Edit or create the `/etc/docker/daemon.json` on your system and add the following:
 
 ```json
 {
@@ -47,7 +53,7 @@ sudo systemctl restart docker
 sudo systemctl status -l docker # check if the service is running properly
 ```
 
-Then you should be able to use the `genui-gpuworker` image without problems. You can pull our build from the Docker Hub or make your own (see *[The `genui-gpuworker` Image](#The GPU Worker Image)* section below). 
+Then you should be able to use the `genui-gpuworker` image without problems. You can pull our build from the Docker Hub or make your own (see [The `genui-gpuworker` Image](#the-gpu-worker-image) section below). 
  
 # Quick Start
 
@@ -56,38 +62,45 @@ If you just want to quickly test the newest publicly available version of the ap
 ```bash
 docker pull sichom/genui-main
 docker pull sichom/genui-worker
-docker pull sichom/genui-gpuworker
+docker pull sichom/genui-gpuworker # needed only if you want to use GPUs
 ```
 
-and setup all services to run locally:
+GenUI deployment with *docker-compose* is configured with environment variables that can be either specified on command line or in host environment or saved to a special file called `.env`. You can create this file inside the `${REPO_ROOT}` or edit the existing one that was created for the purpose of this quick start guide:
 
 ```bash
-GENUI_PROTOCOL=http \
-GENUI_HOST=localhost \
-GENUI_PORT=8000 \
-POSTGRES_PASSWORD=genui \
-REDIS_PASSWORD=redis \
-GENUI_BACKEND_SECRET=`cat django_secret_example` \
-GENUI_CELERY_QUEUES=celery,gpu \
-GENUI_CELERY_CONCURRENCY=`nproc --all` \
-docker-compose -f docker-compose-main.yml -f docker-compose-gpuworker.yml up
-# docker-compose -f docker-compose-main.yml -f docker-compose-worker.yml up # if you do not have an NVIDIA GPU
+# ${REPO_ROOT}/.env
+GENUI_PROTOCOL=http
+GENUI_HOST=localhost
+GENUI_PORT=8000
+POSTGRES_PASSWORD=genui 
+REDIS_PASSWORD=redis
+GENUI_BACKEND_SECRET=some_django_secret_key
+GENUI_CELERY_QUEUES=celery,gpu
+GENUI_CELERY_CONCURRENCY=0
 ```
 
-You should now be able to access the GUI at `http://localhost:8000/app/` and see the API documentation at `http://localhost:8000/api/`. Check the *[Environment Variables Reference](#Environment Variables Reference)* at the end of this document 
-to learn about these settings and other variables that can be set.
-Note that the variables defined in the `${REPO_ROOT}/.env` are automatically loaded by Docker Compose so you can save some common variables there and save yourself some space on the command line. If you want to look into other deployment strategies, check the *[Deployment Scenarios](#Deployment Scenarios)*
-section.
+This configuration should now be picked up by *docker-compose* and the GenUI platform can be deployed as follows:
+
+```bash
+docker-compose -f docker-compose-main.yml -f docker-compose-worker.yml up
+# docker-compose -f docker-compose-main.yml -f docker-compose-gpuworker.yml up # if you have an NVIDIA GPU
+```
+
+> The deployment process can take several minutes on some machines since the JavaScript frontend has to be rebuilt in case the backend host changes.
+
+Once you see that the Celery workers have been started successfully, you should be able to access the GUI at `http://localhost:8000/app/` and see the REST API documentation at `http://localhost:8000/api/`. 
+
+For more information on configurable deployment options, see the [Environment Variables Reference](#environment-variables-reference) at the end of this document. If you want to look into other deployment strategies, check the [Deployment Scenarios](#deployment-scenarios) section.
 
 # Building Images from Source
 
-If you want to build your own GenUI docker images, you can build them using the files in this repository. Make sure you have the source code for the submodules (the backend Python code and the frontend UI code) checked out by running the following in `${REPO_ROOT}`:
+If you want to build your own GenUI Docker images, you can check out the source code from the appropriate public Git repositories:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-The submodules will be checked out to `${REPO_ROOT}/src/`. If you want, you can go to each module folder and check out the versions of the backend and frontend that you want. If you want to replace these submodules with your own repositories, just replace the appropriate URLs in `${REPO_ROOT}/.gitmodules` before running the command above.
+The submodules will be checked out to `${REPO_ROOT}/src/`. If you want, you can go to each module folder and check out the versions of the backend and frontend that you want. If you want to replace the source of the submodules with your own repositories, just provide the appropriate URLs in `${REPO_ROOT}/.gitmodules` before running the command above.
 
 ## The Base Image
 
@@ -100,24 +113,26 @@ docker build -t your_repo/genui-base:your_tag -f Dockerfile-base .
 
 ## The NVIDIA CUDA Base Image
 
-This base image is meant to be used for applications that require GPU support. In particular, workers that want to consume tasks submitted to the *gpu* queue and take advantage of GPU hardware will have to be based on this image. You can build images for any desired CUDA Toolkit version. You can [download](https://developer.nvidia.com/cuda-toolkit-archive) the CUDA installation runfile you want and place it somewhere in the context of your build (`${REPO_ROOT}/config/nvidia`, for example). You should get a runfile for Debian/Ubuntu since the GenUI images are all based on Debian. On Linux, you can easily download the runfile with `wget` like so:
+This variant of the [base image](#the-base-image) is meant to be used for applications that require GPU support. In particular, workers that want to consume tasks submitted to the *gpu* queue and take advantage of GPU hardware will have to use this image. You can build images for any desired CUDA Toolkit version. You can [download](https://developer.nvidia.com/cuda-toolkit-archive) the CUDA installation runfile you want. You should get a runfile for Debian/Ubuntu since the GenUI images are all based on Debian and place it somewhere in the context of your build (`${REPO_ROOT}/config/nvidia`, for example). On Linux, you can easily download the runfile with `wget` like so:
 
 ```bash
 mkdir -p config/nvidia
 wget http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_11.2.0_460.27.04_linux.run -P ./config/nvidia/
 ```
 
-Once you have the runfile, you just need to specify the **NVIDIA_CUDA_RUNFILE** build argument and build the image: 
+Once you have the runfile in place, you just need to specify the **NVIDIA_CUDA_RUNFILE** build argument and build the image: 
 
 ```bash
 docker build --build-arg NVIDIA_CUDA_RUNFILE=path_to_your_runfile -t your_repo/genui-base-cuda:your_tag -f Dockerfile-base-cuda .
 # for example: docker build --build-arg NVIDIA_CUDA_RUNFILE=./config/nvidia/cuda_11.2.0_460.27.04_linux.run -t sichom/genui-base-cuda:latest -f Dockerfile-base-cuda .
 ```
 
+Note that both base images do not have to be rebuilt each time. They only need to be changed if the frontend or backend dependencies have been updated.
+
 ## The Main App Image
 
-If you successfully built the `genui-base` image, you can just build the 
-main image the same way:
+If you successfully built the `genui-base` image, you can build the 
+main image that contains the frontend and backend source code:
 
 ```bash
 docker build -t your_repo/genui-main:your_tag -f Dockerfile-main .
@@ -126,15 +141,14 @@ docker build -t your_repo/genui-main:your_tag -f Dockerfile-main .
 
 ## The Worker Image
 
-And the same follows for the worker image:
+And the same follows for the worker image, which only contains the backend code:
 
 ```bash
 docker build -t your_repo/genui-worker:your_tag -f Dockerfile-worker .
 # for example: docker build -t sichom/genui-worker:latest -f Dockerfile-worker .
 ```
 
-This image is meant for any tasks that do not require GPU acceleration. Such Celery
-tasks should be queued to the default *celery* queue by the backend service. You can configure the queues that the worker consumes during deployment with the **GENUI_CELERY_QUEUES** environment variable, which is a comma-separated list of queue names.
+This image is meant for any tasks that do not require GPU acceleration. Such Celery tasks will be queued to the default *celery* queue by the backend service. You can configure the queues that the worker consumes during deployment with the **GENUI_CELERY_QUEUES** environment variable, which is a comma-separated list of queue names.
 
 ## The GPU Worker Image
 
@@ -145,41 +159,17 @@ docker build -t your_repo/genui-gpuworker:your_tag -f Dockerfile-gpuworker .
 # for example: docker build -t sichom/genui-gpuworker:latest -f Dockerfile-gpuworker .
 ```
 
-## Building All Images at Once
-
-It might be useful to build all GenUI images at once and automatically push
-them to your repository on Docker Hub. The `build.sh` and `push.sh` are
-designated just for that.
-
-Call `build.sh` like so to build images with a given tag:
-
-```bash
-GENUI_DOCKER_IMAGE_PREFIX=your_repo \
-GENUI_GENUI_DOCKER_IMAGE_TAG=your_tag \
-NVIDIA_CUDA_RUNFILE=./config/nvidia/cuda_11.2.0_460.27.04_linux.run \
-./build.sh
-```
-
-and then use `push.sh` to automatically tag them and push them to your repository:
-
-```bash
-GENUI_DOCKER_IMAGE_PREFIX=your_repo \
-GENUI_GENUI_DOCKER_IMAGE_TAG=your_tag \
-./push.sh
-```
-
 # Deployment Scenarios
 
 In this section, we will cover some common deployment scenarios. We already
-covered the simplest case above, but we will focus on more production-ready options here.
+covered the simplest case above (see [Quick Start](#quick-start)), but we will focus on more production-ready options here.
 
 ## Single Machine Deployment
 
 If you are deploying on a single machine, the task is very simple 
-with Docker Compose. Here is a more involved production-ready example
+with *docker-compose*. Here is a more involved production-ready example
 with one basic worker and one GPU worker. We will use an environment 
-file for this one because we will reuse some variables for different calls
-to *docker-compose*:
+file to store some default settings:
 
 ```bash
 # ${REPO_ROOT}/.env
@@ -188,48 +178,50 @@ GENUI_USER_ID=your_user_id
 GENUI_USER_GROUP=your_user_group
 GENUI_USER_GROUP_ID=your_user_group_id
 GENUI_PROTOCOL=https
-GENUI_HOST=your_host
+GENUI_HOST=genui.eu
 GENUI_PORT=443
+GENUI_CELERY_QUEUES=celery,gpu
+GENUI_CELERY_CONCURRENCY=0
+DAJNGO_SETTINGS_MODULE=genui.settings.prod
+GENUI_CONTAINER_PREFIX=genui-docker-prod-
+GENUI_SSL_KEYFILE=/etc/letsencrypt/live/genui.eu/privkey.pem
+GENUI_SSL_CERTFILE=/etc/letsencrypt/live/genui.eu/fullchain.pem
 GENUI_DATA_MOUNT=/path/to/data/directory
 ```
 
-The **GENUI_USER_*** variables indicate under which user the GenUI containers should run.
+The variables starting with **GENUI_USER_** indicate the user that the GenUI containers should run under.
 By default all containers run as *root*, which is not always the safest option. Therefore,
-with these settings you can specify the user you want to use instead of *root*. It should be a user that exists on your host as well. All media files generated by the application in **GENUI_DATA_MOUNT** are owned by this user. You should back up the directory specified by **GENUI_DATA_MOUNT** regularly since it contains all application data. If you want to move
-the application to a different host, you can just take this data and migrate it to the new machine.
+with these settings you can specify the user you want to use instead of *root*. It should be a user that exists on your host as well. 
 
-Now we can finally bring up the main service and also the default worker with Docker Compose:
+All media files generated by the application are saved to **GENUI_DATA_MOUNT** and are owned by **GENUI_USER**. You should back up the directory specified by **GENUI_DATA_MOUNT** regularly since it contains all application data. If you want to move
+the application to a different host, you can just take this data and migrate it to the new machine with ease. 
+
+If you are using HTTPS, do not forget to specify the paths to your certificate and key file. In this example (deployment to https://genui.eu/), we use keys from Let's Encrypt located on the host in `/etc/letsencrypt/live/genui.eu/privkey.pem` and `/etc/letsencrypt/live/genui.eu/fullchain.pem`.
+
+After these preliminary settings are done, we can deploy the GenUI images:
 
 ```bash
 POSTGRES_PASSWORD=some_secure_password \
 REDIS_PASSWORD=some_secure_password \
 GENUI_BACKEND_SECRET=some_secure_secret \
-GENUI_CELERY_QUEUES=celery \
-GENUI_CELERY_CONCURRENCY=0 \
 docker-compose -f docker-compose-main.yml -f docker-compose-worker.yml up
 ```
 
-The **GENUI_CELERY_CONCURRENCY** variable defines how many tasks the worker should process in parallel.
-The value of 0 means that all available CPU cores will be used.
-If you do not have a GPU, just set **GENUI_CELERY_QUEUES** to `celery,gpu`
-so that the worker also consumes the GPU tasks. If you have a GPU 
-installed on your system, you can consume the *gpu* queue by spawning the GPU worker service in addition to the regular worker:
+If you have a GPU installed on your system, you can spawn a GPU worker instead:
 
 ```bash
 POSTGRES_PASSWORD=some_secure_password \
 REDIS_PASSWORD=some_secure_password \
 GENUI_BACKEND_SECRET=some_secure_secret \
-GENUI_CELERY_QUEUES=gpu \
-GENUI_CELERY_CONCURRENCY=1 \
 NVIDIA_VISIBLE_DEVICES=0 \
-docker-compose -f docker-compose-gpuworker.yml up
+docker-compose -f docker-compose-main.yml -f docker-compose-worker.yml up
 ```
 
-This will expose the first GPU (**NVIDIA_VISIBLE_DEVICES** set to 0) to the worker container, which will only let one task to execute on the GPU at one time (**GENUI_CELERY_CONCURRENCY** set to 1). If you want to make use of more GPUs on your system, you can spawn one such container per GPU.
+This will expose the first GPU (**NVIDIA_VISIBLE_DEVICES** set to 0) to the worker container.
 
 ### The `up.sh` Utility
 
-If you want, you can also take advantage of the `up.sh` utility script. This script will bring up the whole GenUI platform on the current host including any number of GPU workers. You can call it like so:
+If you want to efficiently use multiple GPUs on your system, you can also take advantage of the `up.sh` utility script. This script will bring up the whole GenUI platform on the current host including any number of GPU workers. You can call it like so:
 
 ```bash
 POSTGRES_PASSWORD=some_secure_password \
@@ -238,7 +230,7 @@ GENUI_BACKEND_SECRET=some_secure_secret \
 ./up.sh 0,1,2
 ```
 
-This will bring up the whole platform and initialize GPU workers for GPUs 0,1 and 2. The containers will run in detached mode, but you can see logs for any container using `docker logs`. For example:
+This will bring up the whole platform and initialize one regular worker for the *celery* queue and three GPU workers for GPUs 0,1 and 2. The containers will run in detached mode, but you can see logs for any container using `docker logs`. For example:
 
 ```bash
 docker logs genui-celery -f
@@ -314,7 +306,7 @@ this would be your Docker Hub username.
 - **POSTGRES_DB** - The name for the created PostgreSQL database.
 - **POSTGRES_USER** - The name for the created PostgreSQL database user.
 - **POSTGRES_PASSWORD** - The password used to login to the PostgreSQL database.
-- **POSTGRES_RDKIT_RELEASE** - Desired image tag for [*informaticsmatters/rdkit-cartridge-debian*](https://hub.docker.com/r/informaticsmatters/rdkit-cartridge-debian/tags?page=1&ordering=last_updated). Should match the version used in the *genui-base* image.
+- **POSTGRES_RDKIT_RELEASE** - Desired image tag for [informaticsmatters/rdkit-cartridge-debian](https://hub.docker.com/r/informaticsmatters/rdkit-cartridge-debian/tags?page=1&ordering=last_updated). Should match the version used in the *genui-base* image.
 - **REDIS_HOST** - The hostname of the machine/container running the redis task queue.
 - **REDIS_PASSWORD** - Password used by workers to access Redis data.
 - **GENUI_USER** - Username of the user on the host, which will be mapped to the container. The docker run command is executed by this user inside containers.
