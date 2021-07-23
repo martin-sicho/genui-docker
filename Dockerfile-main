@@ -10,6 +10,8 @@ ARG FRONTEND_DIR=./src/genui-gui
 # setup environment variables
 ENV GENUI_BACKEND_DIR=${ROOT_DIR}/${BACKEND_DIR}
 ENV GENUI_FRONTEND_DIR=${ROOT_DIR}/${FRONTEND_DIR}
+ENV REACT_APP_GENUI_DEPLOY_VERSION=${GENUI_DOCKER_IMAGE_TAG}
+ENV PUBLIC_URL=/app
 
 # authbind: to allow the app process to bind port 443 if run as nonroot
 RUN apt-get install -y --no-install-recommends authbind
@@ -22,6 +24,9 @@ RUN npm --prefix ${GENUI_FRONTEND_DIR} install ${GENUI_FRONTEND_DIR}
 # copy over the sources
 COPY ${BACKEND_DIR} ${GENUI_BACKEND_DIR}
 COPY ${FRONTEND_DIR} ${GENUI_FRONTEND_DIR}
+
+# build the frontend
+RUN npm run-script build --prefix ${GENUI_FRONTEND_DIR}
 
 # copy the entrypoint script
 COPY ./entrypoint-main.sh ${ROOT_DIR}/entrypoint-main.sh

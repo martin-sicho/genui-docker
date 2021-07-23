@@ -42,11 +42,8 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST:-db}
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PASSWORD
-      - REACT_APP_GENUI_BACKEND_ROOT_URL=${GENUI_PROTOCOL}://${GENUI_HOST}:${GENUI_PORT}/
-      - REACT_APP_GENUI_DEPLOY_VERSION=${GENUI_DOCKER_IMAGE_TAG:-latest}
-      - GENUI_FRONTEND_APP_PATH=${GENUI_FRONTEND_APP_PATH:-/app}
-      - GENUI_BUILD_FRONTEND=${GENUI_BUILD_FRONTEND:-1}
-      - PUBLIC_URL=${GENUI_FRONTEND_APP_PATH:-/app}
+      - GENUI_FRONTEND_APP_PATH=/app
+      - PUBLIC_URL=/app
       - GENUI_USER=${GENUI_USER:-root}
       - GENUI_USER_GROUP=${GENUI_USER_GROUP:-root}
       - GENUI_CONTAINER_PREFIX=${GENUI_CONTAINER_PREFIX:-genui-docker-}
@@ -55,7 +52,7 @@ services:
       - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
       - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}
       - static:/genui/data/files/static/
-      - frontend:/genui/src/genui-gui/build/
+      - frontend:/genui/frontend
       - ${GENUI_SSL_CERTFILE:-./config/nginx/certs/localhost.crt}:/etc/certs/${GENUI_HOST}.crt:ro
       - ${GENUI_SSL_KEYFILE:-./config/nginx/certs/localhost.key}:/etc/certs/${GENUI_HOST}.key:ro
       - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/group:/etc/group:ro
@@ -78,16 +75,15 @@ services:
       - GENUI_HOST
       - GENUI_PORT
       - GENUI_FRONTEND_APP_PATH=${GENUI_FRONTEND_APP_PATH:-/app}
-      - NGINX_CONF_TEMPLATE=${GENUI_PROTOCOL}.template
       - BACKEND_DOCKER_HOSTNAME=${GENUI_CONTAINER_PREFIX:-genui-docker-}backend
-    command: /bin/bash -c "envsubst '$$GENUI_PROTOCOL $$GENUI_HOST $$GENUI_PORT $$GENUI_FRONTEND_APP_PATH $$BACKEND_DOCKER_HOSTNAME' < /etc/nginx/conf.d/$$NGINX_CONF_TEMPLATE > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$GENUI_PROTOCOL $$GENUI_HOST $$GENUI_PORT $$GENUI_FRONTEND_APP_PATH $$BACKEND_DOCKER_HOSTNAME' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - "${GENUI_PORT}:${GENUI_PORT}"
     volumes:
       - ${GENUI_DATA_MOUNT:-./genuidata}/media:/usr/share/nginx/html/downloads:ro
       - static:/usr/share/nginx/html/static:ro
       - frontend:/usr/share/nginx/html/app:ro
-      - ./config/nginx/:/etc/nginx/conf.d
+      - ./config/nginx/${GENUI_PROTOCOL}.template:/etc/nginx/conf.d/nginx.conf.template:ro
       - ${GENUI_SSL_CERTFILE:-./config/nginx/certs/localhost.crt}:/etc/nginx/conf.d/certs/genui.crt:ro
       - ${GENUI_SSL_KEYFILE:-./config/nginx/certs/localhost.key}:/etc/nginx/conf.d/certs/genui.key:ro
     depends_on:
