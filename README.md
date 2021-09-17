@@ -294,7 +294,7 @@ In order to customize the GenUI images for various deployment scenarios, a colle
 - **NVIDIA_VISIBLE_DEVICES** - Integer ID of the GPU that should be exposed to the deployed *genui-gpuworker* image. You can display GPUs connected to your host system with `nvidia-smi -L`. If you have multiple GPUs, you should run one instance of *genui-gpuworker* per GPU.
 - **GENUI_DOCKER_IMAGE_PREFIX** - The prefix to use for the docker image repository. Normally,
 this would be your Docker Hub username.
-- **DOCKER_IMAGE_TAG** - The tag of the GenUI docker image to be build or pull by `docker-compose`.
+- **GENUI_DOCKER_IMAGE_TAG** - The tag of the GenUI docker image to be build or pulled by `docker-compose`.
 - **GENUI_CONTAINER_PREFIX** - Prefix for the running containers of this project. Defaults to `genui-docker-`
 - **DOCKER_USER_CONFIG_MOUNT** - In order to seamlessly map GenUI application data to the host system, the container will require read-only access to the following files:
     - `/etc/group`
