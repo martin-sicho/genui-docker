@@ -5,10 +5,11 @@ set -e
 GENUI_FRONTEND_ROOT=${GENUI_FRONTEND_DIR}
 GENUI_MEDIA_ROOT="${GENUI_DATA_DIR}/files/media/"
 
-# compile the frontend app
-if [[ "${GENUI_BUILD_FRONTEND}" -eq 1 ]]
-  then echo "Building GenUI frontend app..." && npm run-script build --prefix ${GENUI_FRONTEND_ROOT}
-fi
+
+GENUI_FRONTEND_INFO_DIR=${GENUI_FRONTEND_ROOT}/build/info/
+mkdir -p ${GENUI_FRONTEND_INFO_DIR}
+echo "{\"url\": \"${GENUI_BACKEND_PROTOCOL}://${GENUI_BACKEND_HOST}:${GENUI_BACKEND_PORT}\"}" > ${GENUI_FRONTEND_INFO_DIR}/backend/host.json
+cp -r ${GENUI_FRONTEND_ROOT}/build/. /genui/frontend/
 
 # migrate the database and set everything up
 python manage.py migrate --noinput

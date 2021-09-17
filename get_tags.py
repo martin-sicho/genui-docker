@@ -28,7 +28,7 @@ def main(args):
     assert frontend_version
 
     # create snapshot ID
-    snapshot_id = hashlib.sha256(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f').encode()).hexdigest()[1:8]
+    snapshot_id = datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S')
 
     # generate docker tag commands
     source_tag = args[1]
