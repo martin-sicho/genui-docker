@@ -57,14 +57,6 @@ Then you should be able to use the `genui-gpuworker` image without problems. You
  
 # Quick Start
 
-If you just want to quickly test the newest publicly available version of the app on your local machine, you can pull the latest docker images from Docker Hub:
-
-```bash
-docker pull sichom/genui-main
-docker pull sichom/genui-worker
-docker pull sichom/genui-gpuworker # needed only if you want to use GPUs
-```
-
 GenUI deployment with *docker-compose* is configured with environment variables that can be either specified on command line or in host environment or saved to a special file called `.env`. You can create this file inside the `${REPO_ROOT}` or edit the existing one that was created for the purpose of this quick start guide:
 
 ```bash
@@ -86,11 +78,15 @@ docker-compose -f docker-compose-main.yml -f docker-compose-worker.yml up
 # docker-compose -f docker-compose-main.yml -f docker-compose-gpuworker.yml up # if you have an NVIDIA GPU
 ```
 
-> The deployment process can take several minutes on some machines since the JavaScript frontend has to be rebuilt in case the backend host changes.
+This can take some time, but once you see that the Celery workers have been started successfully and are connected to backend, you should be able to access the GUI at `http://localhost:8000/app/` and see the REST API documentation at `http://localhost:8000/api/`. 
 
-Once you see that the Celery workers have been started successfully, you should be able to access the GUI at `http://localhost:8000/app/` and see the REST API documentation at `http://localhost:8000/api/`. 
+For more information on configurable deployment options, see the [Environment Variables Reference](#environment-variables-reference) at the end of this document. If you want to look into other deployment strategies, check the [Deployment Scenarios](#deployment-scenarios) section. If you want, you can also just pull the needed images from Docker Hub and set them up yourself or use a different deployment tool.
 
-For more information on configurable deployment options, see the [Environment Variables Reference](#environment-variables-reference) at the end of this document. If you want to look into other deployment strategies, check the [Deployment Scenarios](#deployment-scenarios) section.
+```bash
+docker pull sichom/genui-main
+docker pull sichom/genui-worker
+docker pull sichom/genui-gpuworker # needed only if you want to use GPUs
+```
 
 # Building Images from Source
 

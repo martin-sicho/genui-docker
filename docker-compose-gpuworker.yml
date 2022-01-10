@@ -5,12 +5,12 @@ services:
         restart: "always"
         image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-gpuworker:${GENUI_DOCKER_IMAGE_TAG:-latest}
         container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}${GENUI_CELERY_CONTAINER_SUFFIX:-}
-        build:
-          context: .
-          dockerfile: Dockerfile-gpuworker
-          args:
-            GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
-            GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
+#        build:
+#          context: .
+#          dockerfile: Dockerfile-gpuworker
+#          args:
+#            GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
+#            GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
         user: ${GENUI_USER_ID:-0}:${GENUI_USER_GROUP_ID:-0}
         environment:
           - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-0}
