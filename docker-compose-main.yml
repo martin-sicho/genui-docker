@@ -3,7 +3,7 @@ version: '3.7'
 services:
   db:
     restart: "always"
-    image: informaticsmatters/rdkit-cartridge-debian:${POSTGRES_RDKIT_RELEASE:-Release_2019_09_2}
+    image: informaticsmatters/rdkit-cartridge-debian:${POSTGRES_RDKIT_RELEASE:-Release_2021_03_5}
     container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}db
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-genui}
@@ -24,12 +24,6 @@ services:
     restart: "always"
     image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-main:${GENUI_DOCKER_IMAGE_TAG:-latest}
     container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend
-#    build:
-#      context: .
-#      dockerfile: Dockerfile-main
-#      args:
-#        GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
-#        GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
     environment:
       - GENUI_BACKEND_PROTOCOL=${GENUI_PROTOCOL}
       - GENUI_BACKEND_HOST=${GENUI_HOST}

@@ -13,12 +13,11 @@ ENV GENUI_FRONTEND_DIR=${ROOT_DIR}/${FRONTEND_DIR}
 ENV REACT_APP_GENUI_DEPLOY_VERSION=${GENUI_DOCKER_IMAGE_TAG}
 ENV PUBLIC_URL=/app
 
-# authbind: to allow the app process to bind port 443 if run as nonroot
-RUN apt-get install -y --no-install-recommends authbind
-
 # install the frontend app dependencies
-RUN conda install -c conda-forge nodejs=12.4.0 && conda clean --all -y
+COPY ${FRONTEND_DIR}/environment.yml ${GENUI_FRONTEND_DIR}/environment.yml
+RUN conda env update -n base --file ${GENUI_FRONTEND_DIR}/environment.yml && conda clean --all -y
 COPY ${FRONTEND_DIR}/package.json ${GENUI_FRONTEND_DIR}/package.json
+COPY ${FRONTEND_DIR}/package-lock.json ${GENUI_FRONTEND_DIR}/package-lock.json
 RUN npm --prefix ${GENUI_FRONTEND_DIR} install ${GENUI_FRONTEND_DIR}
 
 # copy over the sources

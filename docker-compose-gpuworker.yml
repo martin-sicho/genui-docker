@@ -5,12 +5,6 @@ services:
         restart: "always"
         image: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}/genui-gpuworker:${GENUI_DOCKER_IMAGE_TAG:-latest}
         container_name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}${GENUI_CELERY_CONTAINER_SUFFIX:-}
-#        build:
-#          context: .
-#          dockerfile: Dockerfile-gpuworker
-#          args:
-#            GENUI_DOCKER_IMAGE_TAG: ${GENUI_DOCKER_IMAGE_TAG:-latest}
-#            GENUI_DOCKER_IMAGE_PREFIX: ${GENUI_DOCKER_IMAGE_PREFIX:-sichom}
         user: ${GENUI_USER_ID:-0}:${GENUI_USER_GROUP_ID:-0}
         environment:
           - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-0}
@@ -31,7 +25,7 @@ services:
           - GENUI_CELERY_QUEUES=gpu
           - GENUI_CELERY_CONCURRENCY=${GENUI_CELERY_CONCURRENCY:-1}
           - GENUI_CONTAINER_PREFIX=${GENUI_CONTAINER_PREFIX:-genui-docker-}
-        command:  wait-for-it ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend:${GENUI_PORT} -t 3600 -- celery worker -O fair --prefetch-multiplier 1 -c ${GENUI_CELERY_CONCURRENCY:-1} -Q ${GENUI_CELERY_QUEUES:-gpu} -E -A genui --loglevel=info --hostname ${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}@%h
+        command:  wait-for-it ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend:${GENUI_PORT} -t 3600 -- celery -A genui worker --prefetch-multiplier 1 --concurrency ${GENUI_CELERY_CONCURRENCY:-1} -Q ${GENUI_CELERY_QUEUES:-gpu} --loglevel=info --hostname ${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}@%h
         volumes:
           - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
           - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}

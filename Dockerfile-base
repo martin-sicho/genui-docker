@@ -21,7 +21,7 @@ RUN apt-get install -y --no-install-recommends wait-for-it
 
 # initialize the backend conda environment
 COPY ${BACKEND_DIR}/environment.yml ${GENUI_BACKEND_DIR}/environment.yml
-RUN conda install python=3.7 && conda env update -n base --file ${GENUI_BACKEND_DIR}/environment.yml && conda clean --all -y
+RUN conda env update -n base --file ${GENUI_BACKEND_DIR}/environment.yml && conda clean --all -y
 
 # install the backend pip packages
 COPY ${BACKEND_DIR}/requirements.txt ${GENUI_BACKEND_DIR}/requirements.txt
