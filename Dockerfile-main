@@ -13,19 +13,28 @@ ENV GENUI_FRONTEND_DIR=${ROOT_DIR}/${FRONTEND_DIR}
 ENV REACT_APP_GENUI_DEPLOY_VERSION=${GENUI_DOCKER_IMAGE_TAG}
 ENV PUBLIC_URL=/app
 
+# install nodejs
+ENV NODE_VERSION=17.9.0
+RUN wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh && chmod +x install.sh && ./install.sh
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+RUN node --version
+RUN npm --version
+
 # install the frontend app dependencies
-COPY ${FRONTEND_DIR}/environment.yml ${GENUI_FRONTEND_DIR}/environment.yml
-RUN conda env update -n base --file ${GENUI_FRONTEND_DIR}/environment.yml && conda clean --all -y
 COPY ${FRONTEND_DIR}/package.json ${GENUI_FRONTEND_DIR}/package.json
 COPY ${FRONTEND_DIR}/package-lock.json ${GENUI_FRONTEND_DIR}/package-lock.json
 RUN npm --prefix ${GENUI_FRONTEND_DIR} install ${GENUI_FRONTEND_DIR}
 
-# copy over the sources
-COPY ${BACKEND_DIR} ${GENUI_BACKEND_DIR}
-COPY ${FRONTEND_DIR} ${GENUI_FRONTEND_DIR}
-
 # build the frontend
+COPY ${FRONTEND_DIR} ${GENUI_FRONTEND_DIR}
 RUN npm run-script build --prefix ${GENUI_FRONTEND_DIR}
+
+# copy backend code
+COPY ${BACKEND_DIR} ${GENUI_BACKEND_DIR}
 
 # copy the entrypoint script
 COPY ./entrypoint-main.sh ${ROOT_DIR}/entrypoint-main.sh

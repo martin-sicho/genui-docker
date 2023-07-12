@@ -25,7 +25,7 @@ services:
           - GENUI_CELERY_QUEUES=gpu
           - GENUI_CELERY_CONCURRENCY=${GENUI_CELERY_CONCURRENCY:-1}
           - GENUI_CONTAINER_PREFIX=${GENUI_CONTAINER_PREFIX:-genui-docker-}
-        command:  wait-for-it ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend:${GENUI_PORT} -t 3600 -- celery -A genui worker --prefetch-multiplier 1 --concurrency ${GENUI_CELERY_CONCURRENCY:-1} -Q ${GENUI_CELERY_QUEUES:-gpu} --loglevel=info --hostname ${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}@%h
+        command:  wait-for-it ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend:${GENUI_PORT} -t 3600 -- celery -A genui worker --prefetch-multiplier 1 --concurrency ${GENUI_CELERY_CONCURRENCY:-1} -P solo -Q ${GENUI_CELERY_QUEUES:-gpu} --loglevel=info -O fair --hostname ${GENUI_CELERY_NAME:-celery}-gpu_${NVIDIA_VISIBLE_DEVICES:-0}@%h
         volumes:
           - ${GENUI_DATA_MOUNT:-./genuidata}/media:/genui/data/files/media/
           - ${GENUI_DATA_MOUNT:-./genuidata}/home:/home/${GENUI_USER:-root}
@@ -34,6 +34,13 @@ services:
           - ${DOCKER_USER_CONFIG_MOUNT:-/etc}/shadow:/etc/shadow:ro
         networks:
           - genui_back
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                  device_ids: ["${NVIDIA_VISIBLE_DEVICES:-0}"]
+                  capabilities: [gpu]
 networks:
   genui_back:
     name: ${GENUI_CONTAINER_PREFIX:-genui-docker-}backend

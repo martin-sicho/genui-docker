@@ -25,7 +25,7 @@ RUN conda env update -n base --file ${GENUI_BACKEND_DIR}/environment.yml && cond
 
 # install the backend pip packages
 COPY ${BACKEND_DIR}/requirements.txt ${GENUI_BACKEND_DIR}/requirements.txt
-RUN pip install --no-cache-dir -r ${GENUI_BACKEND_DIR}/requirements.txt
+RUN pip install --no-cache-dir rdkit==2021.3.5 && pip install --no-cache-dir -r ${GENUI_BACKEND_DIR}/requirements.txt && pip3 install --no-cache-dir torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 
 # run updates
 #RUN apt-get update && apt-get upgrade -y --no-install-recommends
