@@ -44,4 +44,5 @@ server {
     ssl_certificate_key /etc/nginx/conf.d/certs/genui.key;
     root /usr/share/nginx/html;    
     add_header Strict-Transport-Security "max-age=31536000" always;
+    client_max_body_size 1000M;
 }
